@@ -10,6 +10,7 @@ mod code;
 mod line;
 mod node;
 mod quote;
+mod table;
 mod text;
 
 use block::parse_block;
