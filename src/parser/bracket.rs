@@ -1,7 +1,8 @@
-use crate::ExtensionParser;
 use crate::ast::Link;
 use crate::ast::Node;
+use crate::tokens::DECO_CHARS;
 use crate::tokens::{LBRACKET, RBRACKET};
+use crate::ExtensionParser;
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -105,7 +106,7 @@ where
 }
 
 fn is_decoration_char(c: char) -> bool {
-    matches!(c, '*' | '-' | '/' | '_' | '!')
+    DECO_CHARS.contains(c)
 }
 
 fn is_url(s: &str) -> bool {
