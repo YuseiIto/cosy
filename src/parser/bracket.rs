@@ -24,28 +24,32 @@ where
         }
 
         // Handle specific bracket types that need recursion or context
-        
+
         // 1. Decoration: [* bold], [*- bold strike]
         // Condition: Starts with decoration chars followed by space
         // We define decoration chars as sequence of *, -, /, _, !
         // Simple check: take while matches decoration char
         let mut chars_iter = content.chars();
         let first_char = chars_iter.next();
-        
+
         if let Some(c) = first_char {
-            if is_decoration_char(c) {
+            if c == '$' {
+                // Math
+                let math_content = &content[1..];
+                return Ok(Node::Math(math_content.trim().to_string()));
+            } else if is_decoration_char(c) {
                 // Check if it's a decoration pattern: "decos "
                 // We need to find the first space
                 if let Some((decos, body)) = content.split_once(' ') {
-                     if decos.chars().all(is_decoration_char) {
-                         // It is a decoration
-                         let mut body_input = body;
-                         let nodes = parse_nodes(&mut body_input, extension)?;
-                         return Ok(Node::Decoration {
-                             decos: decos.to_string(),
-                             nodes,
-                         });
-                     }
+                    if decos.chars().all(is_decoration_char) {
+                        // It is a decoration
+                        let mut body_input = body;
+                        let nodes = parse_nodes(&mut body_input, extension)?;
+                        return Ok(Node::Decoration {
+                            decos: decos.to_string(),
+                            nodes,
+                        });
+                    }
                 }
             }
         }
@@ -60,33 +64,33 @@ where
             });
         }
         // TODO: Handle repetition [name.icon*3] if needed.
-        
+
         // 3. Links (recurse on label)
         // Split by space
         if let Some((left, right)) = content.split_once(' ') {
-             let left = left.trim();
-             let right = right.trim();
+            let left = left.trim();
+            let right = right.trim();
 
-             if is_url(left) {
-                 // [url label]
-                 let mut label_input = right;
-                 let nodes = parse_nodes(&mut label_input, extension)?;
-                 return Ok(Node::Link(Link::WithLabel {
-                     href: left.to_string(),
-                     label: nodes,
-                 }));
-             } else if is_url(right) {
-                 // [label url]
-                 let mut label_input = left;
-                 let nodes = parse_nodes(&mut label_input, extension)?;
-                 return Ok(Node::Link(Link::WithLabel {
-                     href: right.to_string(),
-                     label: nodes,
-                 }));
-             } else {
-                 // [Page Name] - Space inside page name
-                 return Ok(Node::Link(Link::Page(content.to_string())));
-             }
+            if is_url(left) {
+                // [url label]
+                let mut label_input = right;
+                let nodes = parse_nodes(&mut label_input, extension)?;
+                return Ok(Node::Link(Link::WithLabel {
+                    href: left.to_string(),
+                    label: nodes,
+                }));
+            } else if is_url(right) {
+                // [label url]
+                let mut label_input = left;
+                let nodes = parse_nodes(&mut label_input, extension)?;
+                return Ok(Node::Link(Link::WithLabel {
+                    href: right.to_string(),
+                    label: nodes,
+                }));
+            } else {
+                // [Page Name] - Space inside page name
+                return Ok(Node::Link(Link::Page(content.to_string())));
+            }
         }
 
         // 4. Simple content (Image, URL, Page)

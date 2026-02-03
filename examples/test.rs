@@ -22,7 +22,8 @@ impl ExtensionParser for MyExtension {
 
 fn main() {
     let extension = MyExtension;
-    let input = "こんにちは、[{ フキダシ] これは [テスト] です。[google https://google.com]";
+    let input =
+        "こんにちは、[{ フキダシ] これは [テスト] です。[google https://google.com] [$ \\xsi]";
 
     let mut input_stream = input;
 
