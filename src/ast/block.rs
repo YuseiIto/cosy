@@ -28,8 +28,7 @@ pub enum BlockContent<T> {
 
     /// A code block with optional filename and indentation.
     CodeBlock {
-        /// The optional filename associated with the code block.
-        filename: Option<String>,
+        meta: CodeBlockMeta,
         /// The indentation level of the code block content.
         indent: usize,
         /// The raw content of the code block.
@@ -55,4 +54,11 @@ pub enum BlockContent<T> {
     ///
     /// This allows for extending the parser with custom block types (e.g., YouTube embeddings, special div blocks).
     Custom(T),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum CodeBlockMeta {
+    None,
+    Either(String),
+    Both { filename: String, filetype: String },
 }

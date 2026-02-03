@@ -1,4 +1,4 @@
-use crate::ast::{Block, BlockContent};
+use crate::ast::{Block, BlockContent, CodeBlockMeta};
 use crate::ExtensionParser;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
@@ -11,10 +11,36 @@ where
     // "code:filename"
     let _ = "code:".parse_next(input)?;
     let filename_line = take_till(0.., |c| c == '\n').parse_next(input)?;
-    let filename = if filename_line.trim().is_empty() {
+    let filename_line = if filename_line.trim().is_empty() {
         None
     } else {
         Some(filename_line.trim().to_string())
+    };
+
+    let meta = match filename_line {
+        Some(ref line) => {
+            // Check for (filetype) at end
+            if let Some(start_idx) = line.rfind('(')
+                && line.ends_with(')')
+                && start_idx < line.len() - 1
+            {
+                let fname = line[..start_idx].trim().to_string();
+                let ftype = line[start_idx + 1..line.len() - 1].trim().to_string();
+
+                match (fname, ftype) {
+                    (f, t) if !f.is_empty() && !t.is_empty() => CodeBlockMeta::Both {
+                        filename: f,
+                        filetype: t,
+                    },
+                    (f, _) if !f.is_empty() => CodeBlockMeta::Either(f),
+                    (_, t) if !t.is_empty() => CodeBlockMeta::Either(t),
+                    _ => CodeBlockMeta::None,
+                }
+            } else {
+                CodeBlockMeta::Either(line.clone())
+            }
+        }
+        None => CodeBlockMeta::None,
     };
 
     if !input.is_empty() && (*input).starts_with('\n') {
@@ -60,7 +86,7 @@ where
     Ok(Block {
         indent,
         content: BlockContent::CodeBlock {
-            filename,
+            meta,
             indent,
             content,
         },
@@ -88,7 +114,7 @@ mod tests {
         assert_eq!(
             block.content,
             BlockContent::CodeBlock {
-                filename: Some("example.rs".to_string()),
+                meta: CodeBlockMeta::Either("example.rs".to_string()),
                 indent: 0,
                 content: "fn main() {\nprintln!(\"Hello, world!\");\n}".to_string(),
             }
@@ -106,9 +132,30 @@ mod tests {
         assert_eq!(
             block.content,
             BlockContent::CodeBlock {
-                filename: None,
+                meta: CodeBlockMeta::None,
                 indent: 0,
                 content: "print('Hello, World!')".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn parse_code_block_with_filename_and_filetype() {
+        let input = "code:script.py(python)\n def greet():\n print('Hello')\n";
+        let mut input_stream = input;
+        let result = parse_code_block::<()>(&mut input_stream, 0);
+        assert!(result.is_ok());
+        let block = result.unwrap();
+        assert_eq!(block.indent, 0);
+        assert_eq!(
+            block.content,
+            BlockContent::CodeBlock {
+                meta: CodeBlockMeta::Both {
+                    filename: "script.py".to_string(),
+                    filetype: "python".to_string(),
+                },
+                indent: 0,
+                content: "def greet():\nprint('Hello')".to_string(),
             }
         );
     }
@@ -124,7 +171,7 @@ mod tests {
         assert_eq!(
             block.content,
             BlockContent::CodeBlock {
-                filename: Some("example.py".to_string()),
+                meta: CodeBlockMeta::Either("example.py".to_string()),
                 indent: 0,
                 content: "print('Hello, World!')".to_string(),
             }
