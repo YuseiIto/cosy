@@ -1,8 +1,9 @@
+use crate::ExtensionParser;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::DECO_CHARS;
+use crate::tokens::DOLLAR;
 use crate::tokens::{LBRACKET, RBRACKET};
-use crate::ExtensionParser;
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -34,7 +35,7 @@ where
         let first_char = chars_iter.next();
 
         if let Some(c) = first_char {
-            if c == '$' {
+            if c == DOLLAR {
                 // Math
                 let math_content = &content[1..];
                 return Ok(Node::Math(math_content.trim().to_string()));

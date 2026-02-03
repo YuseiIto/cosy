@@ -1,8 +1,8 @@
 use crate::ast::Node;
-use crate::tokens::LBRACKET;
-use winnow::Result as PResult;
+use crate::tokens::{DOLLAR, LBRACKET};
 use winnow::prelude::*;
 use winnow::token::take_till;
+use winnow::Result as PResult;
 
 pub fn parse_text<'s, T>(input: &mut &'s str) -> PResult<Node<T>> {
     // Stop at [, $, `
@@ -13,7 +13,7 @@ pub fn parse_text<'s, T>(input: &mut &'s str) -> PResult<Node<T>> {
     // If next char is [, $, or `, take_till will fail (return 0 len match if 1..).
     // This allows alt() in parse_nodes to try other parsers.
 
-    let text = take_till(1.., |c| c == LBRACKET || c == '$' || c == '`').parse_next(input)?;
+    let text = take_till(1.., |c| c == LBRACKET || c == DOLLAR || c == '`').parse_next(input)?;
     Ok(Node::Text(text.to_string()))
 }
 
