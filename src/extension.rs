@@ -6,6 +6,16 @@ pub trait ExtensionParser {
     fn parse_block(&self, content: &str) -> Option<Self::Output>;
 }
 
+impl ExtensionParser for () {
+    type Output = ();
+    fn parse_bracket(&self, _content: &str) -> Option<Self::Output> {
+        None
+    }
+    fn parse_block(&self, _content: &str) -> Option<Self::Output> {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
