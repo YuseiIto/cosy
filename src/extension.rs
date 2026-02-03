@@ -3,6 +3,7 @@ pub trait ExtensionParser {
     type Output;
     // Parse the content inside brackets and return an optional custom output
     fn parse_bracket(&self, content: &str) -> Option<Self::Output>;
+    fn parse_block(&self, content: &str) -> Option<Self::Output>;
 }
 
 #[cfg(test)]
@@ -25,6 +26,10 @@ mod tests {
                 None
             }
         }
+
+        fn parse_block(&self, _content: &str) -> Option<Self::Output> {
+            None
+        }
     }
 
     #[test]
@@ -37,16 +42,20 @@ mod tests {
         let result = crate::parse(&mut input_stream, &extension);
 
         assert!(result.is_ok());
-        let nodes = result.unwrap();
-        assert_eq!(
-            nodes,
-            vec![
-                Node::Text("こんにちは、".to_string()),
-                Node::Custom(MySyntax::SpeechBubble("フキダシ".to_string())),
-                Node::Text(" これは ".to_string()),
-                Node::Link(Link::Page("テスト".to_string())),
-                Node::Text(" です。".to_string()),
-            ]
-        );
+        let blocks = result.unwrap();
+
+        assert_eq!(blocks.len(), 1);
+
+        let block = &blocks[0];
+        assert_eq!(block.indent, 0);
+
+        let expected = BlockContent::Line(vec![
+            Node::Text("こんにちは、".to_string()),
+            Node::Custom(MySyntax::SpeechBubble("フキダシ".to_string())),
+            Node::Text(" これは ".to_string()),
+            Node::Link(Link::Page("テスト".to_string())),
+            Node::Text(" です。".to_string()),
+        ]);
+        assert_eq!(block.content, expected);
     }
 }

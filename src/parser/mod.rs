@@ -1,27 +1,19 @@
-use crate::ast::Node;
+use crate::ast::Document;
 use crate::ExtensionParser;
-use winnow::combinator::{alt, repeat};
+use winnow::combinator::repeat;
 use winnow::prelude::*;
 use winnow::Result as PResult;
 
+mod block;
 mod bracket;
+mod node;
 mod text;
 
-use bracket::parse_bracket;
-use text::parse_text;
+use block::parse_block;
 
-pub fn parse<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Vec<Node<E::Output>>>
+pub fn parse<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Document<E::Output>>
 where
     E: ExtensionParser,
 {
-    repeat(
-        0..,
-        alt((
-            // Parse bracketed content
-            parse_bracket(extension),
-            // Parse plain text
-            parse_text,
-        )),
-    )
-    .parse_next(input)
+    repeat(0.., |i: &mut &'s str| parse_block(i, extension)).parse_next(input)
 }

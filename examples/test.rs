@@ -15,6 +15,9 @@ impl ExtensionParser for MyExtension {
             None
         }
     }
+    fn parse_block(&self, _content: &str) -> Option<Self::Output> {
+        None
+    }
 }
 
 fn main() {
