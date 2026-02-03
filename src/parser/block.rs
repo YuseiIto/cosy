@@ -1,3 +1,4 @@
+use super::line;
 use crate::ast::{Block, BlockContent};
 use crate::ExtensionParser;
 use winnow::combinator::{eof, not};
@@ -33,31 +34,7 @@ where
     }
 
     // Default: Line
-    parse_line(input, extension, indent_len)
-}
-
-fn parse_line<'s, E>(
-    input: &mut &'s str,
-    extension: &'s E,
-    indent: usize,
-) -> PResult<Block<E::Output>>
-where
-    E: ExtensionParser,
-{
-    let line_content = take_till(0.., |c| c == '\n').parse_next(input)?;
-
-    // Consume newline if present
-    if !input.is_empty() && (*input).starts_with('\n') {
-        let _ = any.parse_next(input)?;
-    }
-
-    let mut span = line_content;
-    let nodes = parse_nodes(&mut span, extension)?;
-
-    Ok(Block {
-        indent,
-        content: BlockContent::Line(nodes),
-    })
+    line::parse_line(input, extension, indent_len)
 }
 
 fn parse_quote<'s, E>(
