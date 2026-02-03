@@ -1,9 +1,9 @@
 use super::node::parse_nodes;
-use crate::ast::{Block, BlockContent};
 use crate::ExtensionParser;
+use crate::ast::{Block, BlockContent};
+use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
-use winnow::Result as PResult;
 
 pub fn parse_quote<'s, E>(
     input: &mut &'s str,

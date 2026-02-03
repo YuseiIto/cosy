@@ -1,9 +1,9 @@
 use super::{code, line, quote, table};
-use crate::ast::Block;
 use crate::ExtensionParser;
+use crate::ast::Block;
+use winnow::Result as PResult;
 use winnow::combinator::{eof, not};
 use winnow::prelude::*;
-use winnow::Result as PResult;
 
 pub fn parse_block<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Block<E::Output>>
 where

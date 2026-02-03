@@ -1,8 +1,8 @@
-use crate::ast::Document;
 use crate::ExtensionParser;
+use crate::ast::Document;
+use winnow::Result as PResult;
 use winnow::combinator::repeat;
 use winnow::prelude::*;
-use winnow::Result as PResult;
 
 mod block;
 mod bracket;

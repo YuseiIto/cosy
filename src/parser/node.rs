@@ -1,9 +1,9 @@
-use crate::ast::Node;
 use crate::ExtensionParser;
+use crate::ast::Node;
+use winnow::Result as PResult;
 use winnow::combinator::{alt, delimited, repeat};
 use winnow::prelude::*;
 use winnow::token::take_until;
-use winnow::Result as PResult;
 
 use super::bracket::parse_bracket;
 use super::text::parse_text;

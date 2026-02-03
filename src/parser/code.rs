@@ -1,8 +1,8 @@
-use crate::ast::{Block, BlockContent, CodeBlockMeta};
 use crate::ExtensionParser;
+use crate::ast::{Block, BlockContent, CodeBlockMeta};
+use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
-use winnow::Result as PResult;
 
 pub fn parse_code_block<'s, E>(input: &mut &'s str, indent: usize) -> PResult<Block<E::Output>>
 where

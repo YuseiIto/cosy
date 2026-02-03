@@ -1,7 +1,7 @@
+use crate::ExtensionParser;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::{LBRACKET, RBRACKET};
-use crate::ExtensionParser;
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
