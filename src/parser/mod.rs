@@ -1,4 +1,5 @@
-use crate::{ExtensionParser, Node};
+use crate::ast::Node;
+use crate::ExtensionParser;
 use winnow::combinator::{alt, repeat};
 use winnow::prelude::*;
 use winnow::Result as PResult;

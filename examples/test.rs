@@ -19,7 +19,7 @@ impl ExtensionParser for MyExtension {
 
 fn main() {
     let extension = MyExtension;
-    let input = "こんにちは、[{ フキダシ] これは [テスト] です。";
+    let input = "こんにちは、[{ フキダシ] これは [テスト] です。[google https://google.com]";
 
     let mut input_stream = input;
 

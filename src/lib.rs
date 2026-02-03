@@ -3,6 +3,6 @@ mod extension;
 mod parser;
 mod tokens;
 
-pub use ast::Node;
+pub use ast::Document;
 pub use extension::ExtensionParser;
 pub use parser::parse;

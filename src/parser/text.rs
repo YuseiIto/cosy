@@ -1,5 +1,5 @@
+use crate::ast::Node;
 use crate::tokens::LBRACKET;
-use crate::Node;
 use winnow::prelude::*;
 use winnow::token::take_till;
 use winnow::Result as PResult;
