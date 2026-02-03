@@ -8,6 +8,7 @@ mod block;
 mod bracket;
 mod line;
 mod node;
+mod quote;
 mod text;
 
 use block::parse_block;

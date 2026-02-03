@@ -1,4 +1,4 @@
-use super::line;
+use super::{line, quote};
 use crate::ast::{Block, BlockContent};
 use crate::ExtensionParser;
 use winnow::combinator::{eof, not};
@@ -30,45 +30,11 @@ where
         return parse_table(input, extension, indent_len);
     }
     if (*input).starts_with('>') {
-        return parse_quote(input, extension, indent_len);
+        return quote::parse_quote(input, extension, indent_len);
     }
 
     // Default: Line
     line::parse_line(input, extension, indent_len)
-}
-
-fn parse_quote<'s, E>(
-    input: &mut &'s str,
-    extension: &'s E,
-    indent: usize,
-) -> PResult<Block<E::Output>>
-where
-    E: ExtensionParser,
-{
-    // Consume '>'
-    let _ = any.parse_next(input)?;
-
-    // Determine content (rest of line)
-    let line_content = take_till(0.., |c| c == '\n').parse_next(input)?;
-
-    // Consume newline if present
-    if !input.is_empty() && (*input).starts_with('\n') {
-        let _ = any.parse_next(input)?;
-    }
-
-    // Parse nodes in the content (trim start space usually after >?)
-    let mut span = line_content;
-    // Optional: trim leading space if exists? `> text` vs `>text`
-    if span.starts_with(' ') {
-        span = &span[1..];
-    }
-
-    let nodes = parse_nodes(&mut span, extension)?;
-
-    Ok(Block {
-        indent,
-        content: BlockContent::Quote(nodes),
-    })
 }
 
 fn parse_code_block<'s, E>(input: &mut &'s str, indent: usize) -> PResult<Block<E::Output>>
