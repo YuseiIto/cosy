@@ -6,6 +6,7 @@ use winnow::Result as PResult;
 
 mod block;
 mod bracket;
+mod code;
 mod line;
 mod node;
 mod quote;
