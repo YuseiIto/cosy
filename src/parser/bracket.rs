@@ -1,9 +1,7 @@
 use crate::ExtensionParser;
 use crate::ast::Link;
 use crate::ast::Node;
-use crate::tokens::DECO_CHARS;
-use crate::tokens::DOLLAR;
-use crate::tokens::{LBRACKET, RBRACKET};
+use crate::tokens::{DECO_CHARS, DOLLAR, ICON_SUFFIX, LBRACKET, RBRACKET};
 use crate::url::{is_image_url, is_url};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
@@ -58,9 +56,9 @@ where
         }
 
         // 2. Icon: [name.icon] or [name.icon*3]
-        if content.ends_with(".icon") {
+        if content.ends_with(ICON_SUFFIX) {
             // Simple icon
-            let name = content.trim_end_matches(".icon");
+            let name = content.trim_end_matches(ICON_SUFFIX);
             return Ok(Node::Icon {
                 name: name.to_string(),
                 count: 1,
