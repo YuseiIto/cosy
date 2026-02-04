@@ -1,6 +1,7 @@
 use super::{code, line, quote, table};
 use crate::ExtensionParser;
 use crate::ast::Block;
+use crate::tokens::{CODE_PREFIX, GT, TABLE_PREFIX};
 use winnow::Result as PResult;
 use winnow::combinator::{eof, not};
 use winnow::prelude::*;
@@ -20,13 +21,13 @@ where
 
     // 2. Determine block type
     // We look at the immediate content
-    if (*input).starts_with("code:") {
+    if (*input).starts_with(CODE_PREFIX) {
         return code::parse_code_block::<E>(input, indent_len);
     }
-    if (*input).starts_with("table:") {
+    if (*input).starts_with(TABLE_PREFIX) {
         return table::parse_table(input, extension, indent_len);
     }
-    if (*input).starts_with('>') {
+    if (*input).starts_with(GT) {
         return quote::parse_quote(input, extension, indent_len);
     }
 
