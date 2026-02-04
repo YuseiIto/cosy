@@ -7,6 +7,7 @@ use winnow::prelude::*;
 mod block;
 mod bracket;
 mod code;
+mod code_inline;
 mod line;
 mod node;
 mod quote;
