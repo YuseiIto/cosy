@@ -1,5 +1,6 @@
 use crate::ExtensionParser;
 use crate::ast::{Block, BlockContent, CodeBlockMeta};
+use crate::tokens::CODE_PREFIX;
 use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
@@ -9,7 +10,7 @@ where
     E: ExtensionParser,
 {
     // "code:filename"
-    let _ = "code:".parse_next(input)?;
+    let _ = CODE_PREFIX.parse_next(input)?;
     let filename_line = take_till(0.., |c| c == '\n').parse_next(input)?;
     let filename_line = if filename_line.trim().is_empty() {
         None
