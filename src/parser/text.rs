@@ -1,8 +1,8 @@
 use crate::ast::Node;
 use crate::tokens::{DOLLAR, LBRACKET};
+use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::take_till;
-use winnow::Result as PResult;
 
 pub fn parse_text<'s, T>(input: &mut &'s str) -> PResult<Node<T>> {
     // Stop at [, $, `
