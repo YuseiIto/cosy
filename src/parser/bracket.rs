@@ -1,9 +1,10 @@
-use crate::ExtensionParser;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::DECO_CHARS;
 use crate::tokens::DOLLAR;
 use crate::tokens::{LBRACKET, RBRACKET};
+use crate::url::{is_image_url, is_url};
+use crate::ExtensionParser;
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -108,16 +109,4 @@ where
 
 fn is_decoration_char(c: char) -> bool {
     DECO_CHARS.contains(c)
-}
-
-fn is_url(s: &str) -> bool {
-    s.starts_with("http://") || s.starts_with("https://")
-}
-
-fn is_image_url(s: &str) -> bool {
-    is_url(s)
-        && (s.ends_with(".png")
-            || s.ends_with(".jpg")
-            || s.ends_with(".gif")
-            || s.ends_with(".webp"))
 }
