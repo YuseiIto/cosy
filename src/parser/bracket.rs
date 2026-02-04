@@ -2,7 +2,7 @@ use crate::ExtensionParser;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::{DECO_CHARS, DOLLAR, ICON_SUFFIX, LBRACKET, RBRACKET};
-use crate::url::{is_image_url, is_url};
+use crate::url::{UrlKind, infer_url_kind, is_url};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -95,12 +95,10 @@ where
         }
 
         // 4. Simple content (Image, URL, Page)
-        if is_image_url(content) {
-            Ok(Node::Image(content.to_string()))
-        } else if is_url(content) {
-            Ok(Node::Link(Link::Url(content.to_string())))
-        } else {
-            Ok(Node::Link(Link::Page(content.to_string())))
+        match infer_url_kind(content) {
+            Some(UrlKind::Image) => Ok(Node::Image(content.to_string())),
+            Some(UrlKind::Other) => Ok(Node::Link(Link::Url(content.to_string()))),
+            None => Ok(Node::Link(Link::Page(content.to_string()))),
         }
     }
 }
