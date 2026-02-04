@@ -1,6 +1,7 @@
 use super::node::parse_nodes;
 use crate::ExtensionParser;
 use crate::ast::{Block, BlockContent};
+use crate::tokens::TABLE_PREFIX;
 use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
@@ -14,7 +15,7 @@ where
     E: ExtensionParser,
 {
     // "table:name"
-    let _ = "table:".parse_next(input)?;
+    let _ = TABLE_PREFIX.parse_next(input)?;
     let name_line = take_till(0.., |c| c == '\n').parse_next(input)?;
     let name = name_line.trim().to_string();
 
