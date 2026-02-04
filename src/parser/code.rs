@@ -10,7 +10,7 @@ where
     E: ExtensionParser,
 {
     // "code:filename"
-    let _ = CODE_PREFIX.parse_next(input)?;
+    let _ = { CODE_PREFIX }.parse_next(input)?;
     let filename_line = take_till(0.., |c| c == '\n').parse_next(input)?;
     let filename_line = if filename_line.trim().is_empty() {
         None

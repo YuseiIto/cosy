@@ -15,7 +15,7 @@ where
     E: ExtensionParser,
 {
     // "table:name"
-    let _ = TABLE_PREFIX.parse_next(input)?;
+    let _ = { TABLE_PREFIX }.parse_next(input)?;
     let name_line = take_till(0.., |c| c == '\n').parse_next(input)?;
     let name = name_line.trim().to_string();
 
