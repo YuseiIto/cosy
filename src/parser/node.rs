@@ -1,5 +1,5 @@
 use super::code_inline::parse_inline_code;
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::Node;
 use winnow::Result as PResult;
 use winnow::combinator::{alt, repeat};
@@ -10,7 +10,7 @@ use super::text::parse_text;
 
 pub fn parse_nodes<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Vec<Node<E::Output>>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     repeat(
         0..,

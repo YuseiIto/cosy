@@ -1,4 +1,4 @@
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent};
 use winnow::Result as PResult;
 use winnow::prelude::*;
@@ -12,7 +12,7 @@ pub fn parse_line<'s, E>(
     indent: usize,
 ) -> PResult<Block<E::Output>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     let line_content = take_till(0.., |c| c == '\n').parse_next(input)?;
 

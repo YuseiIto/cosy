@@ -1,12 +1,12 @@
 // The trait for parsing custom extensions in a markup language
-pub trait ExtensionParser {
+pub trait CosyParserExtension {
     type Output;
     // Parse the content inside brackets and return an optional custom output
     fn parse_bracket(&self, content: &str) -> Option<Self::Output>;
     fn parse_block(&self, content: &str) -> Option<Self::Output>;
 }
 
-impl ExtensionParser for () {
+impl CosyParserExtension for () {
     type Output = ();
     fn parse_bracket(&self, _content: &str) -> Option<Self::Output> {
         None
@@ -27,7 +27,7 @@ mod tests {
     }
 
     struct MyExtension;
-    impl ExtensionParser for MyExtension {
+    impl CosyParserExtension for MyExtension {
         type Output = MySyntax;
         fn parse_bracket(&self, content: &str) -> Option<Self::Output> {
             if let Some(body) = content.strip_prefix("{ ") {

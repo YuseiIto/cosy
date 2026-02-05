@@ -1,4 +1,4 @@
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::Document;
 use winnow::Result as PResult;
 use winnow::combinator::repeat;
@@ -18,7 +18,7 @@ use block::parse_block;
 
 pub fn parse<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Document<E::Output>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     repeat(0.., |i: &mut &'s str| parse_block(i, extension)).parse_next(input)
 }

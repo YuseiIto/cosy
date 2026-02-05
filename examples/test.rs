@@ -1,4 +1,4 @@
-use cosy::ExtensionParser;
+use cosy::CosyParserExtension;
 
 #[derive(Debug, PartialEq)]
 enum MySyntax {
@@ -6,7 +6,7 @@ enum MySyntax {
 }
 
 struct MyExtension;
-impl ExtensionParser for MyExtension {
+impl CosyParserExtension for MyExtension {
     type Output = MySyntax;
     fn parse_bracket(&self, content: &str) -> Option<Self::Output> {
         if let Some(body) = content.strip_prefix("{ ") {

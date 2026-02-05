@@ -1,4 +1,4 @@
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent, CodeBlockMeta};
 use crate::tokens::CODE_PREFIX;
 use winnow::Result as PResult;
@@ -7,7 +7,7 @@ use winnow::token::{any, take_till};
 
 pub fn parse_code_block<'s, E>(input: &mut &'s str, indent: usize) -> PResult<Block<E::Output>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     // "code:filename"
     let _ = { CODE_PREFIX }.parse_next(input)?;

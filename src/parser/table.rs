@@ -1,5 +1,5 @@
 use super::node::parse_nodes;
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent};
 use crate::tokens::TABLE_PREFIX;
 use winnow::Result as PResult;
@@ -12,7 +12,7 @@ pub fn parse_table<'s, E>(
     indent: usize,
 ) -> PResult<Block<E::Output>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     // "table:name"
     let _ = { TABLE_PREFIX }.parse_next(input)?;

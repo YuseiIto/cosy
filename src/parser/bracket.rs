@@ -1,4 +1,4 @@
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::{DECO_CHARS, DOLLAR, ICON_SUFFIX, LBRACKET, RBRACKET};
@@ -14,7 +14,7 @@ pub fn parse_bracket<'s, 'i, E>(
     extension: &'s E,
 ) -> impl Parser<&'i str, Node<E::Output>, ContextError> + 's
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     move |input: &mut &'i str| {
         let content: &str =

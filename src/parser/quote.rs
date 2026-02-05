@@ -1,5 +1,5 @@
 use super::node::parse_nodes;
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent};
 use winnow::Result as PResult;
 use winnow::prelude::*;
@@ -11,7 +11,7 @@ pub fn parse_quote<'s, E>(
     indent: usize,
 ) -> PResult<Block<E::Output>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     // Consume '>'
     let _ = any.parse_next(input)?;

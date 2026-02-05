@@ -1,5 +1,5 @@
 use super::{code, line, quote, table};
-use crate::ExtensionParser;
+use crate::CosyParserExtension;
 use crate::ast::Block;
 use crate::tokens::{CODE_PREFIX, GT, TABLE_PREFIX};
 use winnow::Result as PResult;
@@ -8,7 +8,7 @@ use winnow::prelude::*;
 
 pub fn parse_block<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Block<E::Output>>
 where
-    E: ExtensionParser,
+    E: CosyParserExtension,
 {
     // Ensure not EOF
     let _ = not(eof).parse_next(input)?;

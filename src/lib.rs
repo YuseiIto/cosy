@@ -4,5 +4,5 @@ mod parser;
 mod tokens;
 mod url;
 
-pub use extension::ExtensionParser;
+pub use extension::CosyParserExtension;
 pub use parser::parse;
