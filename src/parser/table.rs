@@ -50,11 +50,13 @@ where
         }
         rows.push(row);
 
-        if !input.is_empty() && (*input).starts_with('\n') {
-            let _ = any.parse_next(input)?;
-        } else {
+        // Check if the next line is empty or end of file
+        if input.is_empty() || !(*input).starts_with('\n') {
             break;
         }
+
+        // Consume newline
+        let _ = any.parse_next(input)?;
     }
 
     Ok(Block {
