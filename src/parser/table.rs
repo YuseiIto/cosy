@@ -42,13 +42,13 @@ where
 
         // Parse row cells (tab separated)
         let cells_str: Vec<&str> = line.split('\t').collect();
-        let mut cells = Vec::new();
+        let mut row = Vec::new();
         for mut cell_str in cells_str {
             // trim? usually tables align. Let's just parse.
             let nodes = parse_nodes(&mut cell_str, extension)?;
-            cells.push(nodes);
+            row.push(nodes);
         }
-        rows.push(cells);
+        rows.push(row);
 
         if !input.is_empty() && (*input).starts_with('\n') {
             let _ = any.parse_next(input)?;
