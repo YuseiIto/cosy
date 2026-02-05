@@ -28,6 +28,8 @@ where
     loop {
         // Peek next line indent
         let current_indent = input.chars().take_while(|&c| c == ' ').count();
+
+        // Indent changed. (End of table)
         if current_indent <= indent {
             break;
         }
