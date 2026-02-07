@@ -2,7 +2,7 @@
 ///
 /// This trait allows users to inject custom syntax handling into the parser.
 /// It provides hooks for parsing content within brackets (`[...]`) and for
-/// defining custom block-level elements. 
+/// defining custom block-level elements.
 /// Hooks are called before the default parsers.
 ///
 /// Implementors can define their own output type, which will be wrapped in

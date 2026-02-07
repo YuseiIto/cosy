@@ -15,6 +15,7 @@ mod bracket;
 mod code;
 mod code_inline;
 mod line;
+mod math_inline;
 mod node;
 mod quote;
 mod table;

@@ -34,11 +34,7 @@ where
         let first_char = chars_iter.next();
 
         if let Some(c) = first_char {
-            if c == DOLLAR {
-                // Math
-                let math_content = &content[1..];
-                return Ok(Node::Math(math_content.trim().to_string()));
-            } else if is_decoration_char(c) {
+            if is_decoration_char(c) {
                 // Check if it's a decoration pattern: "decos "
                 // We need to find the first space
                 if let Some((decos, body)) = content.split_once(' ') {
