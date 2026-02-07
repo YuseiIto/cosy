@@ -20,9 +20,6 @@ where
         let content: &str =
             delimited(LBRACKET, take_until(0.., RBRACKET), RBRACKET).parse_next(input)?;
 
-        if let Some(custom_node) = extension.parse_bracket(content) {
-            return Ok(Node::Custom(custom_node));
-        }
 
         // Handle specific bracket types that need recursion or context
 
