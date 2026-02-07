@@ -15,6 +15,7 @@ mod bracket;
 mod bracket_extension;
 mod code;
 mod code_inline;
+mod deco;
 mod line;
 mod math_inline;
 mod node;

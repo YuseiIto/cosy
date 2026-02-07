@@ -20,34 +20,6 @@ where
         let content: &str =
             delimited(LBRACKET, take_until(0.., RBRACKET), RBRACKET).parse_next(input)?;
 
-
-        // Handle specific bracket types that need recursion or context
-
-        // 1. Decoration: [* bold], [*- bold strike]
-        // Condition: Starts with decoration chars followed by space
-        // We define decoration chars as sequence of *, -, /, _, !
-        // Simple check: take while matches decoration char
-        let mut chars_iter = content.chars();
-        let first_char = chars_iter.next();
-
-        if let Some(c) = first_char {
-            if is_decoration_char(c) {
-                // Check if it's a decoration pattern: "decos "
-                // We need to find the first space
-                if let Some((decos, body)) = content.split_once(' ') {
-                    if decos.chars().all(is_decoration_char) {
-                        // It is a decoration
-                        let mut body_input = body;
-                        let nodes = parse_nodes(&mut body_input, extension)?;
-                        return Ok(Node::Decoration {
-                            decos: decos.to_string(),
-                            nodes,
-                        });
-                    }
-                }
-            }
-        }
-
         // 2. Icon: [name.icon] or [name.icon*3]
         if content.ends_with(ICON_SUFFIX) {
             // Simple icon
@@ -61,7 +33,8 @@ where
 
         // 3. Links (recurse on label)
         // Split by space
-        if let Some((left, right)) = content.split_once(' ') {
+
+        if let Some((left, right)) = content.rsplit_once(' ') {
             let left = left.trim();
             let right = right.trim();
 
@@ -94,8 +67,4 @@ where
             None => Ok(Node::Link(Link::Page(content.to_string()))),
         }
     }
-}
-
-fn is_decoration_char(c: char) -> bool {
-    DECO_CHARS.contains(c)
 }
