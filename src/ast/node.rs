@@ -32,6 +32,9 @@ pub enum Node<T> {
     /// Mathematical expression.
     Math(String),
 
+    /// A hashtag reference (e.g., `#タグ名`).
+    Hashtag(String),
+
     /// Decorated text (bold, italic, etc.).
     ///
     /// Requires `T` due to recursive structure.

@@ -2,6 +2,7 @@ use super::bracket::parse_bracket;
 use super::bracket_extension::parse_bracket_extension;
 use super::code_inline::parse_inline_code;
 use super::deco::parse_deco;
+use super::hashtag::parse_hashtag;
 use super::math_inline::parse_math_inline;
 use super::text::parse_text;
 use crate::CosyParserExtension;
@@ -22,6 +23,7 @@ where
             parse_bracket_extension(extension),
             parse_deco(extension),
             parse_bracket(extension),
+            parse_hashtag,
             parse_text,
         )),
     )
@@ -43,6 +45,19 @@ mod tests {
             Node::Text(" and more text".to_string()),
         ];
 
+        assert_eq!(result, expected);
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn test_parse_hashtag_node() {
+        let mut input = "テキスト #タグ 続き";
+        let result = parse_nodes(&mut input, &()).unwrap();
+        let expected = vec![
+            Node::Text("テキスト ".to_string()),
+            Node::Hashtag("タグ".to_string()),
+            Node::Text(" 続き".to_string()),
+        ];
         assert_eq!(result, expected);
         assert_eq!(input, "");
     }
