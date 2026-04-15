@@ -12,6 +12,7 @@ use winnow::prelude::*;
 
 mod block;
 mod bracket;
+mod bracket_content;
 mod bracket_extension;
 mod code;
 mod code_inline;

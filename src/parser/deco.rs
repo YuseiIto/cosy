@@ -1,3 +1,4 @@
+use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Node;
 use crate::tokens::{DECO_CHARS, LBRACKET, RBRACKET};
@@ -5,7 +6,7 @@ use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
 use winnow::stream::AsChar;
-use winnow::token::{take_until, take_while};
+use winnow::token::take_while;
 
 use super::node::parse_nodes;
 
@@ -17,7 +18,7 @@ where
 {
     move |input: &mut &'i str| {
         let mut content: &str =
-            delimited(LBRACKET, take_until(0.., RBRACKET), RBRACKET).parse_next(input)?;
+            delimited(LBRACKET, take_bracket_content, RBRACKET).parse_next(input)?;
         let decos = take_while(1.., |c| is_deco_char(c)).parse_next(&mut content)?;
 
         // Skip spaces after decoration
@@ -55,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_parse_deco_with_links() {
-        let mut input = "[* Click [here](http://example.com)] and more text";
+        let mut input = "[* Click [here http://example.com]] and more text";
         let result: Node<()> = parse_deco(&()).parse_next(&mut input).unwrap();
         let expected = Node::Decoration {
             decos: "*".to_string(),

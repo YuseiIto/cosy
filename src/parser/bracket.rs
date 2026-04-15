@@ -1,12 +1,12 @@
+use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
-use crate::tokens::{DECO_CHARS, DOLLAR, ICON_SUFFIX, LBRACKET, RBRACKET};
+use crate::tokens::{ICON_SUFFIX, LBRACKET, RBRACKET};
 use crate::url::{UrlKind, infer_url_kind, is_url};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
-use winnow::token::take_until;
 
 use super::node::parse_nodes;
 
@@ -18,7 +18,7 @@ where
 {
     move |input: &mut &'i str| {
         let content: &str =
-            delimited(LBRACKET, take_until(0.., RBRACKET), RBRACKET).parse_next(input)?;
+            delimited(LBRACKET, take_bracket_content, RBRACKET).parse_next(input)?;
 
         // 2. Icon: [name.icon] or [name.icon*3]
         if content.ends_with(ICON_SUFFIX) {
