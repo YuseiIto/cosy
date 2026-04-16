@@ -16,6 +16,7 @@ mod bracket_content;
 mod bracket_extension;
 mod code;
 mod code_inline;
+mod commandline;
 mod deco;
 mod hashtag;
 mod helpfeel;

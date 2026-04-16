@@ -13,3 +13,4 @@ pub const ICON_SUFFIX: &str = ".icon";
 pub const DECO_CHARS: &str = "!#%&'()*+,-./{|}<>_~=";
 pub const HASH: char = '#';
 pub const HELPFEEL_PREFIX: &str = "? ";
+pub const COMMAND_PREFIX: &str = "$ ";

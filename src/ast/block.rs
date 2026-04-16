@@ -55,6 +55,11 @@ pub enum BlockContent<T> {
     /// Content after `? ` is stored as a raw string; not parsed as inline nodes.
     Helpfeel(String),
 
+    /// A command-line notation block (starts with `$ `).
+    ///
+    /// Content after `$ ` is stored as a raw string; not parsed as inline nodes.
+    CommandLine(String),
+
     /// A custom block-level extension.
     ///
     /// This allows for extending the parser with custom block types (e.g., YouTube embeddings, special div blocks).
