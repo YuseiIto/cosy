@@ -19,21 +19,16 @@ where
         let _ = winnow::token::take(indent_len).parse_next(input)?;
     }
 
-    // 2. Determine block type
-    // We look at the immediate content
-    if (*input).starts_with(CODE_PREFIX) {
-        return code::parse_code_block::<E>(input, indent_len);
+    // 2. Determine block type and dispatch
+    if input.starts_with(CODE_PREFIX) {
+        code::parse_code_block::<E>(input, indent_len)
+    } else if input.starts_with(TABLE_PREFIX) {
+        table::parse_table(input, extension, indent_len)
+    } else if input.starts_with(GT) {
+        quote::parse_quote(input, extension, indent_len)
+    } else if input.starts_with(HELPFEEL_PREFIX) {
+        helpfeel::parse_helpfeel::<E::Output>(input, indent_len)
+    } else {
+        line::parse_line(input, extension, indent_len)
     }
-    if (*input).starts_with(TABLE_PREFIX) {
-        return table::parse_table(input, extension, indent_len);
-    }
-    if (*input).starts_with(GT) {
-        return quote::parse_quote(input, extension, indent_len);
-    }
-    if (*input).starts_with(HELPFEEL_PREFIX) {
-        return helpfeel::parse_helpfeel::<E::Output>(input, indent_len);
-    }
-
-    // Default: Line
-    line::parse_line(input, extension, indent_len)
 }
