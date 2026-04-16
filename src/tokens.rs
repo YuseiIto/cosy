@@ -12,3 +12,4 @@ pub const ICON_SUFFIX: &str = ".icon";
 // https://scrapbox.io/help-jp/%E6%96%87%E5%AD%97%E8%A3%85%E9%A3%BE%E8%A8%98%E6%B3%95
 pub const DECO_CHARS: &str = "!#%&'()*+,-./{|}<>_~=";
 pub const HASH: char = '#';
+pub const HELPFEEL_PREFIX: &str = "? ";

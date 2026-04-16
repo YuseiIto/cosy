@@ -18,6 +18,7 @@ mod code;
 mod code_inline;
 mod deco;
 mod hashtag;
+mod helpfeel;
 mod line;
 mod math_inline;
 mod node;

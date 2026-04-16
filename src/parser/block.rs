@@ -1,7 +1,7 @@
-use super::{code, line, quote, table};
+use super::{code, helpfeel, line, quote, table};
 use crate::CosyParserExtension;
 use crate::ast::Block;
-use crate::tokens::{CODE_PREFIX, GT, TABLE_PREFIX};
+use crate::tokens::{CODE_PREFIX, GT, HELPFEEL_PREFIX, TABLE_PREFIX};
 use winnow::Result as PResult;
 use winnow::combinator::{eof, not};
 use winnow::prelude::*;
@@ -29,6 +29,9 @@ where
     }
     if (*input).starts_with(GT) {
         return quote::parse_quote(input, extension, indent_len);
+    }
+    if (*input).starts_with(HELPFEEL_PREFIX) {
+        return helpfeel::parse_helpfeel::<E::Output>(input, indent_len);
     }
 
     // Default: Line

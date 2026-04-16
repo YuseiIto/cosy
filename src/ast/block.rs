@@ -50,6 +50,11 @@ pub enum BlockContent<T> {
     /// Content of quote is also subject to inline parsing.
     Quote(Vec<Node<T>>),
 
+    /// A Helpfeel search-query line (starts with `? `).
+    ///
+    /// Content after `? ` is stored as a raw string; not parsed as inline nodes.
+    Helpfeel(String),
+
     /// A custom block-level extension.
     ///
     /// This allows for extending the parser with custom block types (e.g., YouTube embeddings, special div blocks).
