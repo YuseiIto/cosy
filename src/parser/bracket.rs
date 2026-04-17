@@ -29,7 +29,17 @@ where
                 count: 1,
             });
         }
-        // TODO: Handle repetition [name.icon*3] if needed.
+        if let Some((name_part, count_str)) = content.rsplit_once('*')
+            && name_part.ends_with(ICON_SUFFIX)
+            && let Ok(count) = count_str.parse::<usize>()
+            && count > 0
+        {
+            let name = name_part.trim_end_matches(ICON_SUFFIX);
+            return Ok(Node::Icon {
+                name: name.to_string(),
+                count,
+            });
+        }
 
         // 3. Cross-project link: [/project], [/project/], or [/project/page]
         if let Some(rest) = content.strip_prefix('/') {
@@ -96,6 +106,54 @@ mod tests {
     fn parse(input: &str) -> Node<()> {
         let mut s = input;
         parse_bracket(&()).parse_next(&mut s).unwrap()
+    }
+
+    #[test]
+    fn test_icon_simple() {
+        let node = parse("[user.icon]");
+        assert_eq!(
+            node,
+            Node::Icon {
+                name: "user".to_string(),
+                count: 1
+            }
+        );
+    }
+
+    #[test]
+    fn test_icon_repeat() {
+        let node = parse("[user.icon*3]");
+        assert_eq!(
+            node,
+            Node::Icon {
+                name: "user".to_string(),
+                count: 3
+            }
+        );
+    }
+
+    #[test]
+    fn test_icon_repeat_one() {
+        let node = parse("[user.icon*1]");
+        assert_eq!(
+            node,
+            Node::Icon {
+                name: "user".to_string(),
+                count: 1
+            }
+        );
+    }
+
+    #[test]
+    fn test_icon_invalid_count_zero() {
+        let node = parse("[user.icon*0]");
+        assert_eq!(node, Node::Link(Link::Page("user.icon*0".to_string())));
+    }
+
+    #[test]
+    fn test_icon_invalid_count_str() {
+        let node = parse("[user.icon*abc]");
+        assert_eq!(node, Node::Link(Link::Page("user.icon*abc".to_string())));
     }
 
     #[test]
