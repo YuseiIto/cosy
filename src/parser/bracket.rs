@@ -31,7 +31,25 @@ where
         }
         // TODO: Handle repetition [name.icon*3] if needed.
 
-        // 3. Links (recurse on label)
+        // 3. Cross-project link: [/project], [/project/], or [/project/page]
+        if let Some(rest) = content.strip_prefix('/') {
+            if let Some((project, page)) = rest.split_once('/') {
+                if !project.is_empty() {
+                    if page.is_empty() {
+                        return Ok(Node::Link(Link::Project(project.to_string())));
+                    } else {
+                        return Ok(Node::Link(Link::ProjectPage {
+                            project: project.to_string(),
+                            page: page.to_string(),
+                        }));
+                    }
+                }
+            } else if !rest.is_empty() {
+                return Ok(Node::Link(Link::Project(rest.to_string())));
+            }
+        }
+
+        // 4. Links (recurse on label)
         // Split by space
 
         if let Some((left, right)) = content.rsplit_once(' ') {
@@ -66,5 +84,55 @@ where
             Some(UrlKind::Other) => Ok(Node::Link(Link::Url(content.to_string()))),
             None => Ok(Node::Link(Link::Page(content.to_string()))),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_bracket;
+    use crate::ast::{Link, Node};
+    use winnow::Parser;
+
+    fn parse(input: &str) -> Node<()> {
+        let mut s = input;
+        parse_bracket(&()).parse_next(&mut s).unwrap()
+    }
+
+    #[test]
+    fn test_project_page_basic() {
+        let node = parse("[/project/page]");
+        assert_eq!(
+            node,
+            Node::Link(Link::ProjectPage {
+                project: "project".to_string(),
+                page: "page".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_project_page_with_spaces() {
+        let node = parse("[/project/page with spaces]");
+        assert_eq!(
+            node,
+            Node::Link(Link::ProjectPage {
+                project: "project".to_string(),
+                page: "page with spaces".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_project_only_link() {
+        // [/project] → Link::Project
+        let node = parse("[/project]");
+        assert_eq!(node, Node::Link(Link::Project("project".to_string())));
+    }
+
+    #[test]
+    fn test_project_empty_page_is_project_link() {
+        // [/project/] has empty page — treated as project link
+        let node = parse("[/project/]");
+        assert_eq!(node, Node::Link(Link::Project("project".to_string())));
     }
 }

@@ -67,4 +67,15 @@ pub enum Link<T> {
         /// The label might contain `Custom` nodes.
         label: Vec<Node<T>>,
     },
+
+    /// A cross-project link to a project's home: [/project] or [/project/]
+    Project(String),
+
+    /// A cross-project page link: [/project/page]
+    ProjectPage {
+        /// The target project name.
+        project: String,
+        /// The target page name within the project.
+        page: String,
+    },
 }
