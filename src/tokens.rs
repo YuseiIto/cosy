@@ -2,7 +2,6 @@ pub const LBRACKET: char = '[';
 pub const RBRACKET: char = ']';
 pub const WHITESPACE: char = ' ';
 pub const GT: char = '>';
-pub const DOLLAR: char = '$';
 pub const BACKTICK: char = '`';
 pub const TABLE_PREFIX: &str = "table:";
 pub const CODE_PREFIX: &str = "code:";

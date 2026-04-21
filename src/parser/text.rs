@@ -1,22 +1,20 @@
 use crate::ast::Node;
-use crate::tokens::{DOLLAR, HASH, LBRACKET};
+use crate::tokens::{HASH, LBRACKET};
 use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::take_till;
 
 pub fn parse_text<'s, T>(input: &mut &'s str) -> PResult<Node<T>> {
-    // Stop at [, $, `
+    // Stop at [, `, #
     // Also stop at \n because blocks are line-based generally, but parse_nodes handles lines.
     // parse_nodes calls this.
     // We should probably consume at least one char to avoid infinite loop if we get stuck,
     // but take_till(1..) ensures we take at least one char or fail.
-    // If next char is [, $, or `, take_till will fail (return 0 len match if 1..).
+    // If next char is [, or `, take_till will fail (return 0 len match if 1..).
     // This allows alt() in parse_nodes to try other parsers.
 
-    let text = take_till(1.., |c| {
-        c == LBRACKET || c == DOLLAR || c == '`' || c == HASH
-    })
-    .parse_next(input)?;
+    let text = take_till(1.., |c| c == LBRACKET || c == '`' || c == HASH)
+        .parse_next(input)?;
     Ok(Node::Text(text.to_string()))
 }
 
@@ -26,4 +24,13 @@ fn test_parse_text() {
     let result: Node<()> = parse_text(&mut input).unwrap();
     assert_eq!(result, Node::Text("これはテストです。".to_string()));
     assert_eq!(input, "[リンク]");
+}
+
+#[test]
+fn test_parse_text_with_bare_dollar() {
+    // bare `$` should not stop parsing - it is not an inline parser trigger
+    let mut input = "price is $100";
+    let result: Node<()> = parse_text(&mut input).unwrap();
+    assert_eq!(result, Node::Text("price is $100".to_string()));
+    assert_eq!(input, "");
 }
