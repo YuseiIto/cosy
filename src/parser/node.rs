@@ -30,6 +30,29 @@ where
     .parse_next(input)
 }
 
+/// Like `parse_nodes` but without `parse_deco` — used inside decoration content
+/// so that `[* [** text]]` treats the inner bracket as a page link, not a nested decoration.
+pub fn parse_nodes_no_deco<'s, E>(
+    input: &mut &'s str,
+    extension: &'s E,
+) -> PResult<Vec<Node<E::Output>>>
+where
+    E: CosyParserExtension,
+{
+    repeat(
+        0..,
+        alt((
+            parse_inline_code,
+            parse_math_inline,
+            parse_bracket_extension(extension),
+            parse_bracket(extension),
+            parse_hashtag,
+            parse_text,
+        )),
+    )
+    .parse_next(input)
+}
+
 #[cfg(test)]
 mod tests {
     use super::parse_nodes;

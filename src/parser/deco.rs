@@ -8,7 +8,7 @@ use winnow::prelude::*;
 use winnow::stream::AsChar;
 use winnow::token::take_while;
 
-use super::node::parse_nodes;
+use super::node::parse_nodes_no_deco;
 
 pub fn parse_deco<'s, 'i, E>(
     extension: &'s E,
@@ -24,7 +24,7 @@ where
         // Skip spaces after decoration
         let _ = take_while(1.., AsChar::is_space).parse_next(&mut content)?;
 
-        let nodes = parse_nodes(&mut content, extension)?;
+        let nodes = parse_nodes_no_deco(&mut content, extension)?;
         Ok(Node::Decoration {
             decos: decos.to_string(),
             nodes: nodes,
@@ -70,5 +70,19 @@ mod tests {
         };
         assert_eq!(result, expected);
         assert_eq!(input, " and more text");
+    }
+
+    #[test]
+    fn test_nested_deco_is_page_link() {
+        // Scrapbox does not allow nested decorations.
+        // Inner [** text] should be parsed as Link::Page("** text").
+        let mut input = "[* [** text]]";
+        let result: Node<()> = parse_deco(&()).parse_next(&mut input).unwrap();
+        let expected = Node::Decoration {
+            decos: "*".to_string(),
+            nodes: vec![Node::Link(Link::Page("** text".to_string()))],
+        };
+        assert_eq!(result, expected);
+        assert_eq!(input, "");
     }
 }
