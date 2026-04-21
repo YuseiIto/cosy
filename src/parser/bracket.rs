@@ -378,6 +378,19 @@ mod tests {
     }
 
     #[test]
+    fn test_icon_name_with_spaces() {
+        // [user name.icon] → Icon { name: "user name", count: 1 }
+        let node = parse("[user name.icon]");
+        assert_eq!(
+            node,
+            Node::Icon {
+                name: "user name".to_string(),
+                count: 1,
+            }
+        );
+    }
+
+    #[test]
     fn test_icon_empty_name_is_page_link() {
         // [.icon] has empty name — should fall through to Link::Page
         let node = parse("[.icon]");

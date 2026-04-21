@@ -73,6 +73,32 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_deco_hash() {
+        // `#` is a decoration character per DECO_CHARS
+        let mut input = "[# text]";
+        let result: Node<()> = parse_deco(&()).parse_next(&mut input).unwrap();
+        let expected = Node::Decoration {
+            decos: "#".to_string(),
+            nodes: vec![Node::Text("text".to_string())],
+        };
+        assert_eq!(result, expected);
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn test_parse_deco_empty_content() {
+        // `[* ]` — decoration with empty inner content
+        let mut input = "[* ]";
+        let result: Node<()> = parse_deco(&()).parse_next(&mut input).unwrap();
+        let expected = Node::Decoration {
+            decos: "*".to_string(),
+            nodes: vec![],
+        };
+        assert_eq!(result, expected);
+        assert_eq!(input, "");
+    }
+
+    #[test]
     fn test_nested_deco_is_page_link() {
         // Scrapbox does not allow nested decorations.
         // Inner [** text] should be parsed as Link::Page("** text").

@@ -59,6 +59,20 @@ mod tests {
     }
 
     #[test]
+    fn parse_quote_no_space() {
+        // `>text` (no space after `>`) should parse as Quote with text content
+        let input = ">text without leading space\n";
+        let mut input_stream = input;
+        let result = parse_quote(&mut input_stream, &(), 0);
+        assert!(result.is_ok());
+        let block = result.unwrap();
+        assert_eq!(
+            block.content,
+            BlockContent::Quote(vec![Node::Text("text without leading space".to_string())])
+        );
+    }
+
+    #[test]
     fn parse_formatted_quote() {
         let input = "> [* Bold Quote] and [Linked part]\n";
         let mut input_stream = input;

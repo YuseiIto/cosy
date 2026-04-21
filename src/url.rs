@@ -39,3 +39,12 @@ fn test_infer_url_kind() {
     );
     assert_eq!(infer_url_kind("not a url"), None);
 }
+
+#[test]
+fn test_infer_url_kind_image_with_query() {
+    // Query string should not affect image detection
+    assert_eq!(
+        infer_url_kind("https://example.com/image.png?w=100"),
+        Some(UrlKind::Image)
+    );
+}
