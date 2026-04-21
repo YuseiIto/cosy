@@ -3,7 +3,7 @@ use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::{ICON_SUFFIX, LBRACKET, RBRACKET};
-use crate::url::{UrlKind, infer_url_kind, is_url};
+use crate::url::{UrlKind, infer_url_kind};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -62,30 +62,75 @@ where
         // 4. Links (recurse on label)
         // Split by space
 
-        if let Some((left, right)) = content.rsplit_once(' ') {
-            let left = left.trim();
-            let right = right.trim();
+        // URLs never contain spaces, so the URL is always the first or last token.
+        // Split at the first space to isolate a leading URL; at the last space for a trailing URL.
+        if content.contains(' ') {
+            let (first_token, rest) = content.split_once(' ').unwrap();
+            let (start, last_token) = content.rsplit_once(' ').unwrap();
 
-            if is_url(left) {
-                // [url label]
-                let mut label_input = right;
-                let nodes = parse_nodes(&mut label_input, extension)?;
-                return Ok(Node::Link(Link::WithLabel {
-                    href: left.to_string(),
-                    label: nodes,
-                }));
-            } else if is_url(right) {
-                // [label url]
-                let mut label_input = left;
-                let nodes = parse_nodes(&mut label_input, extension)?;
-                return Ok(Node::Link(Link::WithLabel {
-                    href: right.to_string(),
-                    label: nodes,
-                }));
+            let first_token = first_token.trim();
+            let last_token = last_token.trim();
+
+            // Determine which end holds the URL (if any).
+            let (left, right) = if infer_url_kind(first_token).is_some() {
+                // [url ...label...]
+                (first_token, rest.trim())
+            } else if infer_url_kind(last_token).is_some() {
+                // [...label... url]
+                (start.trim(), last_token)
             } else {
-                // [Page Name] - Space inside page name
+                // [Page Name With Spaces]
                 return Ok(Node::Link(Link::Page(content.to_string())));
-            }
+            };
+
+            let left_kind = infer_url_kind(left);
+            let right_kind = infer_url_kind(right);
+
+            return match (left_kind, right_kind) {
+                (Some(UrlKind::Image), Some(UrlKind::Image)) => {
+                    // [img1 img2] → display img2, link to img1
+                    Ok(Node::LinkedImage {
+                        src: right.to_string(),
+                        href: left.to_string(),
+                    })
+                }
+                (Some(UrlKind::Image), Some(UrlKind::Other)) => {
+                    // [img link] → display img, link to link
+                    Ok(Node::LinkedImage {
+                        src: left.to_string(),
+                        href: right.to_string(),
+                    })
+                }
+                (Some(UrlKind::Other), Some(UrlKind::Image)) => {
+                    // [link img] → display img, link to link
+                    Ok(Node::LinkedImage {
+                        src: right.to_string(),
+                        href: left.to_string(),
+                    })
+                }
+                (Some(UrlKind::Other), _) => {
+                    // [url label...] → multi-word label linking to url
+                    let mut label_input = right;
+                    let nodes = parse_nodes(&mut label_input, extension)?;
+                    Ok(Node::Link(Link::WithLabel {
+                        href: left.to_string(),
+                        label: nodes,
+                    }))
+                }
+                (_, Some(UrlKind::Other) | Some(UrlKind::Image)) => {
+                    // [...label url] → multi-word label linking to url
+                    let mut label_input = left;
+                    let nodes = parse_nodes(&mut label_input, extension)?;
+                    Ok(Node::Link(Link::WithLabel {
+                        href: right.to_string(),
+                        label: nodes,
+                    }))
+                }
+                _ => {
+                    // [Page Name] - space inside page name
+                    Ok(Node::Link(Link::Page(content.to_string())))
+                }
+            };
         }
 
         // 4. Simple content (Image, URL, Page)
@@ -192,5 +237,149 @@ mod tests {
         // [/project/] has empty page — treated as project link
         let node = parse("[/project/]");
         assert_eq!(node, Node::Link(Link::Project("project".to_string())));
+    }
+
+    // LinkedImage tests
+    const IMAGE_URL: &str = "https://example.com/photo.png";
+    const IMAGE_URL_2: &str = "https://example.com/other.jpg";
+    const LINK_URL: &str = "https://example.com/page";
+
+    #[test]
+    fn test_linked_image_img_then_link() {
+        // [image_url link_url] → LinkedImage { src: image_url, href: link_url }
+        let node = parse(&format!("[{IMAGE_URL} {LINK_URL}]"));
+        assert_eq!(
+            node,
+            Node::LinkedImage {
+                src: IMAGE_URL.to_string(),
+                href: LINK_URL.to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn test_linked_image_link_then_img() {
+        // [link_url image_url] → LinkedImage { src: image_url, href: link_url }
+        let node = parse(&format!("[{LINK_URL} {IMAGE_URL}]"));
+        assert_eq!(
+            node,
+            Node::LinkedImage {
+                src: IMAGE_URL.to_string(),
+                href: LINK_URL.to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn test_linked_image_two_images() {
+        // [img1 img2] → LinkedImage { src: img2, href: img1 }
+        let node = parse(&format!("[{IMAGE_URL} {IMAGE_URL_2}]"));
+        assert_eq!(
+            node,
+            Node::LinkedImage {
+                src: IMAGE_URL_2.to_string(),
+                href: IMAGE_URL.to_string(),
+            }
+        );
+    }
+
+    // Regression tests for non-image URL cases
+    #[test]
+    fn test_with_label_url_then_single_word() {
+        // [url label] → WithLabel { href: url, label: [Text("label")] }
+        let node = parse(&format!("[{LINK_URL} label]"));
+        assert_eq!(
+            node,
+            Node::Link(Link::WithLabel {
+                href: LINK_URL.to_string(),
+                label: vec![Node::Text("label".to_string())],
+            })
+        );
+    }
+
+    #[test]
+    fn test_with_label_single_word_then_url() {
+        // [label url] → WithLabel { href: url, label: [Text("label")] }
+        let node = parse(&format!("[label {LINK_URL}]"));
+        assert_eq!(
+            node,
+            Node::Link(Link::WithLabel {
+                href: LINK_URL.to_string(),
+                label: vec![Node::Text("label".to_string())],
+            })
+        );
+    }
+
+    #[test]
+    fn test_with_label_url_then_multi_word() {
+        // [url some text] → WithLabel { href: url, label: [Text("some text")] }
+        let node = parse(&format!("[{LINK_URL} some text]"));
+        assert_eq!(
+            node,
+            Node::Link(Link::WithLabel {
+                href: LINK_URL.to_string(),
+                label: vec![Node::Text("some text".to_string())],
+            })
+        );
+    }
+
+    #[test]
+    fn test_with_label_multi_word_then_url() {
+        // [some text url] → WithLabel { href: url, label: [Text("some text")] }
+        let node = parse(&format!("[some text {LINK_URL}]"));
+        assert_eq!(
+            node,
+            Node::Link(Link::WithLabel {
+                href: LINK_URL.to_string(),
+                label: vec![Node::Text("some text".to_string())],
+            })
+        );
+    }
+
+    #[test]
+    fn test_with_label_url_then_multiple_urls() {
+        // [url1 url2 url3] → WithLabel { href: url1, label: [Text("url2 url3")] }
+        let url2 = "https://example.com/other";
+        let url3 = "https://example.com/another";
+        let node = parse(&format!("[{LINK_URL} {url2} {url3}]"));
+        assert_eq!(
+            node,
+            Node::Link(Link::WithLabel {
+                href: LINK_URL.to_string(),
+                label: vec![Node::Text(format!("{url2} {url3}"))],
+            })
+        );
+    }
+
+    #[test]
+    fn test_with_label_two_non_image_urls() {
+        // [url1 url2] → WithLabel { href: url1, label: [Text(url2)] }
+        // parse_nodes on a bare URL (no brackets) produces Text, not Link::Url
+        let url2 = "https://example.com/other";
+        let node = parse(&format!("[{LINK_URL} {url2}]"));
+        assert_eq!(
+            node,
+            Node::Link(Link::WithLabel {
+                href: LINK_URL.to_string(),
+                label: vec![Node::Text(url2.to_string())],
+            })
+        );
+    }
+
+    #[test]
+    fn test_page_with_spaces() {
+        // [text1 text2] → Page("text1 text2")
+        let node = parse("[hello world]");
+        assert_eq!(node, Node::Link(Link::Page("hello world".to_string())));
+    }
+
+    #[test]
+    fn test_page_with_multiple_spaces() {
+        // [text1 text2 text3] → Page("text1 text2 text3")
+        let node = parse("[hello beautiful world]");
+        assert_eq!(
+            node,
+            Node::Link(Link::Page("hello beautiful world".to_string()))
+        );
     }
 }

@@ -39,7 +39,3 @@ fn test_infer_url_kind() {
     );
     assert_eq!(infer_url_kind("not a url"), None);
 }
-
-pub fn is_url(s: &str) -> bool {
-    Url::parse(s).is_ok()
-}

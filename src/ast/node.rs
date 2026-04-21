@@ -18,6 +18,14 @@ pub enum Node<T> {
     /// An image reference.
     Image(String),
 
+    /// An image with a clickable link.
+    LinkedImage {
+        /// URL of the image to display.
+        src: String,
+        /// URL to navigate to when clicked.
+        href: String,
+    },
+
     /// An icon reference.
     Icon {
         /// The name of the icon.
