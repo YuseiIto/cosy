@@ -22,12 +22,14 @@ where
 
         // 2. Icon: [name.icon] or [name.icon*3]
         if content.ends_with(ICON_SUFFIX) {
-            // Simple icon
+            // Simple icon — reject empty names like [.icon]
             let name = content.trim_end_matches(ICON_SUFFIX);
-            return Ok(Node::Icon {
-                name: name.to_string(),
-                count: 1,
-            });
+            if !name.is_empty() {
+                return Ok(Node::Icon {
+                    name: name.to_string(),
+                    count: 1,
+                });
+            }
         }
         if let Some((name_part, count_str)) = content.rsplit_once('*')
             && name_part.ends_with(ICON_SUFFIX)
@@ -35,10 +37,12 @@ where
             && count > 0
         {
             let name = name_part.trim_end_matches(ICON_SUFFIX);
-            return Ok(Node::Icon {
-                name: name.to_string(),
-                count,
-            });
+            if !name.is_empty() {
+                return Ok(Node::Icon {
+                    name: name.to_string(),
+                    count,
+                });
+            }
         }
 
         // 3. Cross-project link: [/project], [/project/], or [/project/page]
@@ -371,6 +375,13 @@ mod tests {
         // [text1 text2] → Page("text1 text2")
         let node = parse("[hello world]");
         assert_eq!(node, Node::Link(Link::Page("hello world".to_string())));
+    }
+
+    #[test]
+    fn test_icon_empty_name_is_page_link() {
+        // [.icon] has empty name — should fall through to Link::Page
+        let node = parse("[.icon]");
+        assert_eq!(node, Node::Link(Link::Page(".icon".to_string())));
     }
 
     #[test]
