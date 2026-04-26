@@ -88,13 +88,13 @@ See [`examples/speech_bubble_extension.rs`](examples/speech_bubble_extension.rs)
 | `` `code` `` | Inline code |
 | `[$ expr]` | Math (LaTeX) |
 | `[* bold]` `[/ italic]` `[- strike]` | Decoration |
+| `[[text]]` | Strong (large bold) text |
 | `#tag` | Hashtag |
 
 ### Planned
 
 The following syntax elements are not yet implemented and are planned for a future release:
 
-- `[[text]]` — Strong (large bold) text
 - `[[image.png]]` — Strong (large) image
 - `[[name.icon]]` — Strong (large) icon
 - `1. item` — Numbered list

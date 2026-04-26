@@ -55,6 +55,12 @@ pub enum Node<T> {
         nodes: Vec<Node<T>>,
     },
 
+    /// Strong (large bold) content rendered by `[[...]]`.
+    ///
+    /// The inner content is parsed as inline nodes, so nested syntax
+    /// such as links and hashtags is supported.
+    Strong(Vec<Node<T>>),
+
     /// A custom inline-level extension.
     ///
     /// This allows for extending the parser with custom inline types (e.g., colored text, warning badges).

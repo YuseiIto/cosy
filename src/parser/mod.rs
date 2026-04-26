@@ -23,6 +23,7 @@ mod helpfeel;
 mod line;
 mod node;
 mod quote;
+mod strong;
 mod table;
 mod text;
 
