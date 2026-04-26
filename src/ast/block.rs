@@ -30,7 +30,10 @@ pub enum BlockContent<T> {
     Line(Vec<Node<T>>),
 
     /// A code block with optional filename and indentation.
+    ///
+    /// Starts with a `code:` prefix line; the body is the indented text that follows.
     CodeBlock {
+        /// Filename and/or filetype metadata parsed from the `code:` prefix line.
         meta: CodeBlockMeta,
         /// The indentation level of the code block content.
         indent: usize,
@@ -69,11 +72,23 @@ pub enum BlockContent<T> {
     Custom(T),
 }
 
+/// Metadata parsed from a `code:` prefix line.
+///
+/// # Examples
+///
+/// | Syntax | Variant |
+/// |--------|---------|
+/// | `code:` | `None` |
+/// | `code:main.rs` | `Either("main.rs")` |
+/// | `code:main.rs(rust)` | `Both { filename: "main.rs", filetype: "rust" }` |
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CodeBlockMeta {
+    /// No filename or filetype specified (`code:`).
     None,
+    /// Either a filename or a filetype, but not both (`code:main.rs` or `code:rust`).
     Either(String),
+    /// Both filename and explicit filetype (`code:main.rs(rust)`).
     Both { filename: String, filetype: String },
 }
