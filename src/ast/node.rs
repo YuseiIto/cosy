@@ -5,7 +5,8 @@
 // --------------------------------------------------------
 
 /// Represents an inline-level element (node) within a block.
-#[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Node<T> {
     /// Plain text.
     Text(String),
@@ -60,7 +61,8 @@ pub enum Node<T> {
 }
 
 /// Represents a link target and optional label.
-#[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Link<T> {
     /// A link to another page (internal link).
     Page(String),

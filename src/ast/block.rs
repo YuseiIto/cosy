@@ -12,7 +12,7 @@ pub type Document<T> = Vec<Block<T>>;
 /// Represents a block-level element in the document.
 ///
 /// Blocks are the top-level structures like lines, code blocks, tables, etc.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Block<T> {
     /// The indentation level of the block.
     pub indent: usize,
@@ -21,7 +21,8 @@ pub struct Block<T> {
 }
 
 /// The content of a block-level element.
-#[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum BlockContent<T> {
     /// A normal line of text, composed of a sequence of inline nodes.
     Line(Vec<Node<T>>),
@@ -66,7 +67,8 @@ pub enum BlockContent<T> {
     Custom(T),
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CodeBlockMeta {
     None,
     Either(String),
