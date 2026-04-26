@@ -28,43 +28,11 @@ mod text;
 
 use block::parse_block;
 
-/// Parses an input string into a `Document` AST node.
-///
-/// This is the main primary point of the parser. It processes the
-/// input string by repeatedly applying the block parser until the entire input is consumed.
-/// The result is a `Document` containing a vector of `Block` nodes.
-///
-/// The function supports extensibility through the `CosyParserExtension` trait, allowing
-/// users to define custom syntax for brackets and blocks.
-///
-/// # Arguments
-///
-/// * `input` - A mutable reference to the input string slice. The parser advances this slice
-///   as it consumes the input.
-/// * `extension` - A reference to an implementation of `CosyParserExtension`. Use `&()` if
-///   no custom extensions are needed.
-///
-/// # Returns
-///
-/// Returns a `PResult<Document<E::Output>>`. On success, it contains the parsed `Document`.
-/// On failure, it returns a parsing error.
-///
-/// # Examples
-///
-/// ## Basic Usage
-///
-/// Parsing simple text with standard syntax:
-///
-/// ```rust
-/// use cosy;
-///
-/// let mut input = "[* Bold text] and [https://example.com Link]";
-/// let result = cosy::parse(&mut input, &());
-///
-/// assert!(result.is_ok());
-///
-/// ```
-pub fn parse<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Document<E::Output>>
+/// Internal winnow-based parser. Use `crate::parse()` for the public API.
+pub(crate) fn parse_inner<'s, E>(
+    input: &mut &'s str,
+    extension: &'s E,
+) -> PResult<Document<E::Output>>
 where
     E: CosyParserExtension,
 {
