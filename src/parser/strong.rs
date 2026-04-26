@@ -2,6 +2,7 @@ use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Node;
 use crate::tokens::{LBRACKET, RBRACKET};
+use crate::url::{UrlKind, infer_url_kind};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -36,7 +37,11 @@ where
         )
         .parse_next(input)?;
 
-        let nodes = parse_nodes_no_deco(&mut content, extension)?;
+        let nodes = match infer_url_kind(content) {
+            Some(UrlKind::Image) => vec![Node::Image(content.to_string())],
+            Some(UrlKind::Other) => vec![Node::Link(crate::ast::Link::Url(content.to_string()))],
+            None => parse_nodes_no_deco(&mut content, extension)?,
+        };
         Ok(Node::Strong(nodes))
     }
 }
@@ -80,6 +85,32 @@ mod tests {
                 Node::Link(Link::Page("Page".to_string())),
                 Node::Text(" here".to_string()),
             ])
+        );
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn test_parse_strong_image() {
+        let mut input = "[[https://example.com/photo.png]]";
+        let result: Node<()> = parse_strong(&()).parse_next(&mut input).unwrap();
+        assert_eq!(
+            result,
+            Node::Strong(vec![Node::Image(
+                "https://example.com/photo.png".to_string()
+            )])
+        );
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn test_parse_strong_non_image_url_is_link() {
+        let mut input = "[[https://example.com/page]]";
+        let result: Node<()> = parse_strong(&()).parse_next(&mut input).unwrap();
+        assert_eq!(
+            result,
+            Node::Strong(vec![Node::Link(crate::ast::Link::Url(
+                "https://example.com/page".to_string()
+            ))])
         );
         assert_eq!(input, "");
     }
