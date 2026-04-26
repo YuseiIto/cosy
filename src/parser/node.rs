@@ -3,7 +3,6 @@ use super::bracket_extension::parse_bracket_extension;
 use super::code_inline::parse_inline_code;
 use super::deco::parse_deco;
 use super::hashtag::parse_hashtag;
-use super::math_inline::parse_math_inline;
 use super::text::parse_text;
 use crate::CosyParserExtension;
 use crate::ast::Node;
@@ -19,7 +18,6 @@ where
         0..,
         alt((
             parse_inline_code,
-            parse_math_inline,
             parse_bracket_extension(extension),
             parse_deco(extension),
             parse_bracket(extension),
@@ -43,7 +41,6 @@ where
         0..,
         alt((
             parse_inline_code,
-            parse_math_inline,
             parse_bracket_extension(extension),
             parse_bracket(extension),
             parse_hashtag,

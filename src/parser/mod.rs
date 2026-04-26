@@ -21,7 +21,6 @@ mod deco;
 mod hashtag;
 mod helpfeel;
 mod line;
-mod math_inline;
 mod node;
 mod quote;
 mod table;

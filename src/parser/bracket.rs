@@ -2,7 +2,7 @@ use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
-use crate::tokens::{ICON_SUFFIX, LBRACKET, RBRACKET};
+use crate::tokens::{ICON_SUFFIX, LBRACKET, MATH_BRACKET_PREFIX, RBRACKET};
 use crate::url::{UrlKind, infer_url_kind};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
@@ -19,6 +19,11 @@ where
     move |input: &mut &'i str| {
         let content: &str =
             delimited(LBRACKET, take_bracket_content, RBRACKET).parse_next(input)?;
+
+        // 1. Math: [$ expr]
+        if let Some(expr) = content.strip_prefix(MATH_BRACKET_PREFIX) {
+            return Ok(Node::Math(expr.trim().to_string()));
+        }
 
         // 2. Icon: [name.icon] or [name.icon*3]
         if content.ends_with(ICON_SUFFIX) {
@@ -155,6 +160,12 @@ mod tests {
     fn parse(input: &str) -> Node<()> {
         let mut s = input;
         parse_bracket(&()).parse_next(&mut s).unwrap()
+    }
+
+    #[test]
+    fn test_math_inline() {
+        let node = parse("[$ y=a^2 + b^2]");
+        assert_eq!(node, Node::Math("y=a^2 + b^2".to_string()));
     }
 
     #[test]
