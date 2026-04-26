@@ -2,6 +2,15 @@
 name = "cosy"
 version = "0.1.0"
 edition = "2024"
+description = "A parser for Cosense/Scrapbox markup syntax that produces a typed AST"
+license = "MIT"
+repository = "https://github.com/YuseiIto/cosy"
+homepage = "https://github.com/YuseiIto/cosy"
+documentation = "https://docs.rs/cosy"
+readme = "README.md"
+keywords = ["parser", "scrapbox", "cosense", "markup", "ast"]
+categories = ["parser-implementations", "text-processing"]
+rust-version = "1.85"
 
 [features]
 serde = ["dep:serde"]
