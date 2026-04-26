@@ -4,7 +4,7 @@ use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::take_till;
 
-pub fn parse_text<'s, T>(input: &mut &'s str) -> PResult<Node<T>> {
+pub fn parse_text<T>(input: &mut &str) -> PResult<Node<T>> {
     // Stop at [, `, #
     // Also stop at \n because blocks are line-based generally, but parse_nodes handles lines.
     // parse_nodes calls this.

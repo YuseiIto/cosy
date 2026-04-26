@@ -7,7 +7,7 @@ use winnow::token::take_while;
 /// Parses `#タグ名` into `Node::Hashtag`.
 /// Tag terminates at space, `[`, `]`, or end of input.
 /// Fails if nothing follows `#` (falls back to parse_text).
-pub fn parse_hashtag<'s, T>(input: &mut &'s str) -> PResult<Node<T>> {
+pub fn parse_hashtag<T>(input: &mut &str) -> PResult<Node<T>> {
     let _ = '#'.parse_next(input)?;
     let terminators = [WHITESPACE, LBRACKET, RBRACKET];
     let tag = take_while(1.., |c: char| !terminators.contains(&c)).parse_next(input)?;

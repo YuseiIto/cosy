@@ -40,9 +40,9 @@ use block::parse_block;
 /// # Arguments
 ///
 /// * `input` - A mutable reference to the input string slice. The parser advances this slice
-///             as it consumes the input.
+///   as it consumes the input.
 /// * `extension` - A reference to an implementation of `CosyParserExtension`. Use `&()` if
-///                 no custom extensions are needed.
+///   no custom extensions are needed.
 ///
 /// # Returns
 ///

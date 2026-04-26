@@ -1,4 +1,3 @@
-use mime_guess;
 use url::Url;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -11,8 +10,8 @@ pub fn infer_url_kind(s: &str) -> Option<UrlKind> {
     if let Ok(url) = Url::parse(s) {
         if let Some(ext) = url
             .path_segments()
-            .and_then(|segments| segments.last())
-            .and_then(|name| name.split('.').last())
+            .and_then(|mut segments| segments.next_back())
+            .and_then(|name| name.split('.').next_back())
         {
             let mime = mime_guess::from_ext(ext).first_or_octet_stream();
             if mime.type_() == mime::IMAGE {

@@ -19,7 +19,7 @@ where
     move |input: &mut &'i str| {
         let mut content: &str =
             delimited(LBRACKET, take_bracket_content, RBRACKET).parse_next(input)?;
-        let decos = take_while(1.., |c| is_deco_char(c)).parse_next(&mut content)?;
+        let decos = take_while(1.., is_deco_char).parse_next(&mut content)?;
 
         // Skip spaces after decoration
         let _ = take_while(1.., AsChar::is_space).parse_next(&mut content)?;
@@ -27,7 +27,7 @@ where
         let nodes = parse_nodes_no_deco(&mut content, extension)?;
         Ok(Node::Decoration {
             decos: decos.to_string(),
-            nodes: nodes,
+            nodes,
         })
     }
 }

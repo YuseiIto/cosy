@@ -5,7 +5,7 @@ use winnow::Result as PResult;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
 
-pub fn parse_code_block<'s, E>(input: &mut &'s str, indent: usize) -> PResult<Block<E::Output>>
+pub fn parse_code_block<E>(input: &mut &str, indent: usize) -> PResult<Block<E::Output>>
 where
     E: CosyParserExtension,
 {

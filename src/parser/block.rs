@@ -11,7 +11,7 @@ where
     E: CosyParserExtension,
 {
     // Ensure not EOF
-    let _ = not(eof).parse_next(input)?;
+    not(eof).parse_next(input)?;
 
     // 1. Calculate and consume indent
     let indent_len = input.chars().take_while(|&c| c == ' ').count();
