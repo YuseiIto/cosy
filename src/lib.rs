@@ -1,3 +1,69 @@
+//! A parser for [Cosense] (formerly Scrapbox) markup syntax.
+//!
+//! cosy converts Cosense/Scrapbox markup text into a typed Abstract Syntax Tree (AST).
+//! It is built with the [`winnow`] parser combinator library and supports user-defined
+//! syntax extensions via the [`CosyParserExtension`] trait.
+//!
+//! [Cosense]: https://cosen.se/
+//! [`winnow`]: https://docs.rs/winnow
+//!
+//! # Quick start
+//!
+//! ```rust
+//! use cosy::ast::{BlockContent, Node};
+//!
+//! let doc = cosy::parse("Hello [* world]!", &()).unwrap();
+//!
+//! // The document is a Vec<Block<()>>
+//! assert_eq!(doc.len(), 1);
+//! ```
+//!
+//! # AST structure
+//!
+//! A [`ast::Document`] is a `Vec<`[`ast::Block`]`<T>>`. Each block has an
+//! `indent` level and a [`ast::BlockContent`] variant:
+//!
+//! - [`ast::BlockContent::Line`] — a normal text line, containing [`ast::Node`]s
+//! - [`ast::BlockContent::CodeBlock`] — a fenced code block (`code:filename`)
+//! - [`ast::BlockContent::Table`] — a table block (`table:name`)
+//! - [`ast::BlockContent::Quote`] — a quoted line (`> ...`)
+//! - [`ast::BlockContent::Helpfeel`] — a Helpfeel search query (`? ...`)
+//! - [`ast::BlockContent::CommandLine`] — a shell command line (`$ ...`)
+//! - [`ast::BlockContent::Custom`] — a user-defined extension block
+//!
+//! Inline [`ast::Node`] variants include [`ast::Node::Text`], [`ast::Node::Link`],
+//! [`ast::Node::Image`], [`ast::Node::Icon`], [`ast::Node::InlineCode`],
+//! [`ast::Node::Math`], [`ast::Node::Hashtag`], [`ast::Node::Decoration`], and
+//! [`ast::Node::Custom`].
+//!
+//! # Extending the parser
+//!
+//! Implement [`CosyParserExtension`] to add your own bracket or block syntax:
+//!
+//! ```rust
+//! use cosy::CosyParserExtension;
+//!
+//! #[derive(Debug, PartialEq)]
+//! enum MySyntax { Highlight(String) }
+//!
+//! struct MyExt;
+//! impl CosyParserExtension for MyExt {
+//!     type Output = MySyntax;
+//!     fn parse_bracket(&self, content: &str) -> Option<MySyntax> {
+//!         content.strip_prefix("! ").map(|s| MySyntax::Highlight(s.to_string()))
+//!     }
+//!     fn parse_block(&self, _content: &str) -> Option<MySyntax> { None }
+//! }
+//!
+//! let doc = cosy::parse("[! important]", &MyExt).unwrap();
+//! ```
+//!
+//! # Feature flags
+//!
+//! | Feature | Description |
+//! |---------|-------------|
+//! | `serde` | Derive [`serde::Serialize`] and [`serde::Deserialize`] on all AST types |
+
 pub mod ast;
 pub mod error;
 mod extension;
