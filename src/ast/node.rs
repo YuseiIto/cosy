@@ -5,6 +5,7 @@
 // --------------------------------------------------------
 
 /// Represents an inline-level element (node) within a block.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Node<T> {
@@ -61,6 +62,7 @@ pub enum Node<T> {
 }
 
 /// Represents a link target and optional label.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Link<T> {

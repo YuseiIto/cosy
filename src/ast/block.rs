@@ -12,6 +12,7 @@ pub type Document<T> = Vec<Block<T>>;
 /// Represents a block-level element in the document.
 ///
 /// Blocks are the top-level structures like lines, code blocks, tables, etc.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Block<T> {
     /// The indentation level of the block.
@@ -21,6 +22,7 @@ pub struct Block<T> {
 }
 
 /// The content of a block-level element.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum BlockContent<T> {
@@ -67,6 +69,7 @@ pub enum BlockContent<T> {
     Custom(T),
 }
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CodeBlockMeta {
