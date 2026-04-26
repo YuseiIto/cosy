@@ -13,8 +13,7 @@ pub fn parse_text<T>(input: &mut &str) -> PResult<Node<T>> {
     // If next char is [, or `, take_till will fail (return 0 len match if 1..).
     // This allows alt() in parse_nodes to try other parsers.
 
-    let text = take_till(1.., |c| c == LBRACKET || c == '`' || c == HASH)
-        .parse_next(input)?;
+    let text = take_till(1.., |c| c == LBRACKET || c == '`' || c == HASH).parse_next(input)?;
     Ok(Node::Text(text.to_string()))
 }
 
