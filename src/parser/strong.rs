@@ -1,7 +1,7 @@
 use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Node;
-use crate::tokens::{LBRACKET, RBRACKET};
+use crate::tokens::{ICON_SUFFIX, LBRACKET, RBRACKET};
 use crate::url::{UrlKind, infer_url_kind};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
@@ -37,10 +37,19 @@ where
         )
         .parse_next(input)?;
 
-        let nodes = match infer_url_kind(content) {
-            Some(UrlKind::Image) => vec![Node::Image(content.to_string())],
-            Some(UrlKind::Other) => vec![Node::Link(crate::ast::Link::Url(content.to_string()))],
-            None => parse_nodes_no_deco(&mut content, extension)?,
+        let nodes = match content.strip_suffix(ICON_SUFFIX) {
+            Some("") => return Err(ContextError::new()),
+            Some(name) => vec![Node::Icon {
+                name: name.to_string(),
+                count: 1,
+            }],
+            None => match infer_url_kind(content) {
+                Some(UrlKind::Image) => vec![Node::Image(content.to_string())],
+                Some(UrlKind::Other) => {
+                    vec![Node::Link(crate::ast::Link::Url(content.to_string()))]
+                }
+                None => parse_nodes_no_deco(&mut content, extension)?,
+            },
         };
         Ok(Node::Strong(nodes))
     }
@@ -111,6 +120,20 @@ mod tests {
             Node::Strong(vec![Node::Link(crate::ast::Link::Url(
                 "https://example.com/page".to_string()
             ))])
+        );
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn test_parse_strong_icon() {
+        let mut input = "[[user.icon]]";
+        let result: Node<()> = parse_strong(&()).parse_next(&mut input).unwrap();
+        assert_eq!(
+            result,
+            Node::Strong(vec![Node::Icon {
+                name: "user".to_string(),
+                count: 1,
+            }])
         );
         assert_eq!(input, "");
     }

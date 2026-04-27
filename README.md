@@ -91,12 +91,12 @@ See [`examples/speech_bubble_extension.rs`](examples/speech_bubble_extension.rs)
 | `[[text]]` | Strong (large bold) text |
 | `[[image.png]]` | Strong (large) image |
 | `[[https://...]]` | Strong (large) link |
+| `[[name.icon]]` | Strong (large) icon |
 | `#tag` | Hashtag |
 
 ### Planned
 
 The following syntax elements are not yet implemented and are planned for a future release:
-- `[[name.icon]]` — Strong (large) icon
 - `1. item` — Numbered list
 - `[N35.xx,E139.xx]` — Google Maps embed
 - `% command` — Command-line notation (csh style)

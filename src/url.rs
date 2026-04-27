@@ -7,6 +7,9 @@ pub enum UrlKind {
 }
 
 pub fn infer_url_kind(s: &str) -> Option<UrlKind> {
+    if !s.contains("://") {
+        return None;
+    }
     if let Ok(url) = Url::parse(s) {
         if let Some(ext) = url
             .path_segments()
