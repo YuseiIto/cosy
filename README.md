@@ -72,7 +72,7 @@ See [`examples/speech_bubble_extension.rs`](examples/speech_bubble_extension.rs)
 | `table:name` | Table |
 | `> text` | Quote |
 | `? query` | Helpfeel search query |
-| `$ command` | Command-line notation |
+| `$ command` `% command` | Command-line notation (bash / csh) |
 
 ### Inline
 
@@ -99,7 +99,7 @@ See [`examples/speech_bubble_extension.rs`](examples/speech_bubble_extension.rs)
 The following syntax elements are not yet implemented and are planned for a future release:
 - `1. item` — Numbered list
 - `[N35.xx,E139.xx]` — Google Maps embed
-- `% command` — Command-line notation (csh style)
+
 
 ## License
 

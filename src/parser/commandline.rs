@@ -75,6 +75,31 @@ mod tests {
     }
 
     #[test]
+    fn parse_csh_commandline_basic() {
+        let mut input = "% ls -la\n";
+        let result = parse_commandline::<()>(&mut input, 0);
+        assert!(result.is_ok());
+        let block = result.unwrap();
+        assert_eq!(
+            block.content,
+            BlockContent::CommandLine("ls -la".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_csh_commandline_indented() {
+        let mut input = "% echo hello\n";
+        let result = parse_commandline::<()>(&mut input, 1);
+        assert!(result.is_ok());
+        let block = result.unwrap();
+        assert_eq!(block.indent, 1);
+        assert_eq!(
+            block.content,
+            BlockContent::CommandLine("echo hello".to_string())
+        );
+    }
+
+    #[test]
     fn parse_commandline_special_chars_not_parsed() {
         let mut input = "$ git commit -m \"[fix] bug\"\n";
         let result = parse_commandline::<()>(&mut input, 0);

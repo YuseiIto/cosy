@@ -12,5 +12,6 @@ pub const ICON_SUFFIX: &str = ".icon";
 pub const DECO_CHARS: &str = "!#%&'()*+,-./{|}<>_~=";
 pub const HASH: char = '#';
 pub const HELPFEEL_PREFIX: &str = "? ";
-pub const COMMAND_PREFIX: &str = "$ ";
+pub const CMD_PREFIX_DOLLAR: &str = "$ ";
+pub const CMD_PREFIX_PERCENT: &str = "% ";
 pub const MATH_BRACKET_PREFIX: &str = "$ ";
