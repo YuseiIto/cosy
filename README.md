@@ -24,7 +24,7 @@ cosy = { version = "0.1", features = ["serde"] }
 ## Usage
 
 ```rust
-use cosy::ast::{BlockContent, Node, Link};
+use cosy::ast::{BlockContent, Node};
 
 let doc = cosy::parse("Hello [* world]! See [https://example.com].", &()).unwrap();
 
