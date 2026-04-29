@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ## [0.1.0] - 2026-04-26
 
 ### Added
@@ -18,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   images (MIME-detected), linked images, icons with repeat count (`[name.icon*N]`),
   inline code, math (`[$ expr]`), decorations (`[* bold]`, `[/ italic]`, etc.),
   and hashtags (`#tag`).
+- `[[text]]` strong (large bold) syntax, including `[[image]]`, `[[url]]`, and
+  `[[name.icon]]` variants.
+- `% command` csh-style command-line notation (alongside existing `$ command`).
+- `[N35.xx,E139.xx]` geographic coordinate syntax with optional zoom level
+  (`[N35.xx,E139.xx,Z14]`), parsed as `Node::Coordinate`.
 - `CosyParserExtension` trait for user-defined bracket and block syntax extensions.
 - Optional `serde` feature for serialization/deserialization of AST types.
 - `ParseError` type (using `thiserror`) so callers do not need a direct `winnow`
