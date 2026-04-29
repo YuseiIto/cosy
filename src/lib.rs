@@ -11,8 +11,6 @@
 //! # Quick start
 //!
 //! ```rust
-//! use cosy::ast::{BlockContent, Node};
-//!
 //! let doc = cosy::parse("Hello [* world]!", &()).unwrap();
 //!
 //! // With `&()` as the extension, `E::Output` is `()`,
@@ -111,7 +109,5 @@ where
     E: CosyParserExtension,
 {
     let mut s = input;
-    parser::parse_inner(&mut s, extension).map_err(|e| ParseError {
-        message: e.to_string(),
-    })
+    parser::parse_inner(&mut s, extension).map_err(|e| ParseError::new(e.to_string()))
 }

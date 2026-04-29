@@ -66,11 +66,9 @@ mod tests {
     impl CosyParserExtension for MyExtension {
         type Output = MySyntax;
         fn parse_bracket(&self, content: &str) -> Option<Self::Output> {
-            if let Some(body) = content.strip_prefix("{ ") {
-                Some(MySyntax::SpeechBubble(body.to_string()))
-            } else {
-                None
-            }
+            content
+                .strip_prefix("{ ")
+                .map(|body| MySyntax::SpeechBubble(body.to_string()))
         }
 
         fn parse_block(&self, _content: &str) -> Option<Self::Output> {
@@ -83,9 +81,7 @@ mod tests {
         let extension = MyExtension;
         let input = "こんにちは、[{ フキダシ] これは [テスト] です。";
 
-        let mut input_stream = input;
-
-        let result = crate::parse(&mut input_stream, &extension);
+        let result = crate::parse(input, &extension);
 
         assert!(result.is_ok());
         let blocks = result.unwrap();

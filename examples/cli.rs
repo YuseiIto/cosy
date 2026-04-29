@@ -16,7 +16,6 @@
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
-use cosy;
 use reqwest::StatusCode;
 use reqwest::blocking::Client;
 use reqwest::header::COOKIE;
@@ -99,8 +98,8 @@ fn main() -> Result<()> {
         InputSource::JsonUrl { url } => fetch_json_by_url(&url, &None)?,
     };
 
-    let mut content = input.as_str();
-    let result = cosy::parse(&mut content, &());
+    let content = input.as_str();
+    let result = cosy::parse(content, &());
 
     match result {
         Ok(nodes) => println!("{:#?}", nodes),
@@ -146,7 +145,7 @@ fn fetch_plain_by_url(url: &str, key: &Option<String>) -> Result<String> {
 /// Fetches a Scrapbox page and returns its combined text content.
 fn fetch_by_page_title(title: &str, key: &Option<String>) -> Result<String> {
     let split_title: Vec<&str> = title.split('/').collect();
-    if !(split_title.len() == 2) || split_title[0].is_empty() || split_title[1].is_empty() {
+    if split_title.len() != 2 || split_title[0].is_empty() || split_title[1].is_empty() {
         bail!("Invalid page title. It must be `project/page` style.")
     }
 
@@ -172,7 +171,7 @@ fn fetch_json_by_url(url: &str, key: &Option<String>) -> Result<String> {
 
 /// Parses Scrapbox-style JSON and joins the lines with newlines.
 fn parse_json(json: &str) -> Result<String> {
-    let page: PageJson = serde_json::from_str(&json)?;
+    let page: PageJson = serde_json::from_str(json)?;
     let mut content = String::new();
 
     for line in page.lines {

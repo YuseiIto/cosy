@@ -21,12 +21,11 @@ impl CosyParserExtension for MyExtension {
     /// Parses custom bracketed content.
     ///
     /// If the content starts with `{ `, it is interpreted as a `SpeechBubble`.
+    /// Returning `None` falls back to the default parser.
     fn parse_bracket(&self, content: &str) -> Option<Self::Output> {
-        if let Some(body) = content.strip_prefix("{ ") {
-            Some(MySyntax::SpeechBubble(body.to_string()))
-        } else {
-            None // Return none to fallback to the default parser
-        }
+        content
+            .strip_prefix("{ ")
+            .map(|body| MySyntax::SpeechBubble(body.to_string()))
     }
 
     /// Parses custom block content.
@@ -41,9 +40,7 @@ fn main() {
     let extension = MyExtension;
     let input = "Cheshire Cat[{ We're all mad here.]";
 
-    let mut input_stream = input;
-
-    let result = cosy::parse(&mut input_stream, &extension);
+    let result = cosy::parse(input, &extension);
 
     match result {
         Ok(nodes) => println!("{:#?}", nodes),
