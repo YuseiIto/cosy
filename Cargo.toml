@@ -10,7 +10,7 @@ documentation = "https://docs.rs/cosy"
 readme = "README.md"
 keywords = ["parser", "scrapbox", "cosense", "markup", "ast"]
 categories = ["parser-implementations", "text-processing"]
-rust-version = "1.85"
+rust-version = "1.88"
 
 [features]
 serde = ["dep:serde"]
