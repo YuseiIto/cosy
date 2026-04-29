@@ -37,7 +37,11 @@ fn parse_nested_inline_syntax() {
         if let Node::Decoration { decos, nodes } = &nodes[0] {
             assert_eq!(decos, "*");
             assert!(nodes.len() >= 3); // "bold ", Link, " text"
-            assert!(nodes.iter().any(|n| matches!(n, Node::Link(Link::Page(p)) if p == "link")));
+            assert!(
+                nodes
+                    .iter()
+                    .any(|n| matches!(n, Node::Link(Link::Page(p)) if p == "link"))
+            );
         } else {
             panic!("expected Decoration");
         }
@@ -52,7 +56,11 @@ fn parse_quote_with_inline() {
     assert_eq!(doc.len(), 1);
     if let BlockContent::Quote(nodes) = &doc[0].content {
         assert!(nodes.len() >= 2);
-        assert!(nodes.iter().any(|n| matches!(n, Node::Link(Link::Page(p)) if p == "link")));
+        assert!(
+            nodes
+                .iter()
+                .any(|n| matches!(n, Node::Link(Link::Page(p)) if p == "link"))
+        );
     } else {
         panic!("expected Quote");
     }
