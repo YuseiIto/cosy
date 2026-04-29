@@ -93,12 +93,7 @@ See [`examples/speech_bubble_extension.rs`](examples/speech_bubble_extension.rs)
 | `[[https://...]]` | Strong (large) link |
 | `[[name.icon]]` | Strong (large) icon |
 | `#tag` | Hashtag |
-
-### Planned
-
-The following syntax elements are not yet implemented and are planned for a future release:
-- `1. item` — Numbered list
-- `[N35.xx,E139.xx]` — Google Maps embed
+| `[N35.xx,E139.xx]` `[N35.xx,E139.xx,Z14]` | Geographic coordinate (map embed) |
 
 
 ## License

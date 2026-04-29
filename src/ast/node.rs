@@ -61,6 +61,25 @@ pub enum Node<T> {
     /// such as links and hashtags is supported.
     Strong(Vec<Node<T>>),
 
+    /// A geographic coordinate rendered as a map embed.
+    ///
+    /// Parsed from `[N35.65,E139.74]` or `[N35.65,E139.74,Z14]`.
+    ///
+    /// Latitude and longitude are stored as `String` (not `f64`) to preserve
+    /// the original representation and satisfy the `Eq` bound on all AST types.
+    Coordinate {
+        /// Latitude value as a string (e.g., `"35.6578589"`).
+        lat: String,
+        /// Latitude direction: `'N'` (north) or `'S'` (south).
+        lat_dir: char,
+        /// Longitude value as a string (e.g., `"139.7474797"`).
+        lon: String,
+        /// Longitude direction: `'E'` (east) or `'W'` (west).
+        lon_dir: char,
+        /// Optional zoom level (e.g., `Some(14)`).
+        zoom: Option<u32>,
+    },
+
     /// A custom inline-level extension.
     ///
     /// This allows for extending the parser with custom inline types (e.g., colored text, warning badges).

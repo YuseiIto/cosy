@@ -142,13 +142,57 @@ where
             };
         }
 
-        // 4. Simple content (Image, URL, Page)
+        // 4. Simple content (Coordinate, Image, URL, Page)
+        if let Some(node) = try_parse_coordinate(content) {
+            return Ok(node);
+        }
+
         match infer_url_kind(content) {
             Some(UrlKind::Image) => Ok(Node::Image(content.to_string())),
             Some(UrlKind::Other) => Ok(Node::Link(Link::Url(content.to_string()))),
             None => Ok(Node::Link(Link::Page(content.to_string()))),
         }
     }
+}
+
+/// Parses a direction prefix + numeric value from a coordinate component.
+/// e.g. `"N35.65"` with `['N', 'S']` → `Some(('N', "35.65"))`.
+fn parse_coord(s: &str, dirs: [char; 2]) -> Option<(char, &str)> {
+    let dir = s.chars().next().filter(|c| dirs.contains(c))?;
+    let val = &s[1..]; // dir is always ASCII
+    val.parse::<f64>().ok()?;
+    Some((dir, val))
+}
+
+/// Tries to parse `content` as coordinate syntax `[NS]{lat},{EW}{lon}[,Z{zoom}]`.
+/// Returns `Some(Node::Coordinate {...})` on success, `None` otherwise.
+fn try_parse_coordinate<T>(content: &str) -> Option<Node<T>> {
+    if !matches!(content.as_bytes().first(), Some(b'N' | b'S')) {
+        return None;
+    }
+
+    let parts: Vec<&str> = content.split(',').collect();
+    if parts.len() < 2 || parts.len() > 3 {
+        return None;
+    }
+
+    let (lat_dir, lat) = parse_coord(parts[0], ['N', 'S'])?;
+    let (lon_dir, lon) = parse_coord(parts[1], ['E', 'W'])?;
+
+    let zoom = if let Some(z_str) = parts.get(2) {
+        let z = z_str.strip_prefix('Z')?;
+        Some(z.parse::<u32>().ok()?)
+    } else {
+        None
+    };
+
+    Some(Node::Coordinate {
+        lat: lat.to_string(),
+        lat_dir,
+        lon: lon.to_string(),
+        lon_dir,
+        zoom,
+    })
 }
 
 #[cfg(test)]
@@ -416,5 +460,79 @@ mod tests {
             node,
             Node::Link(Link::Page("hello beautiful world".to_string()))
         );
+    }
+
+    #[test]
+    fn test_coordinate_basic() {
+        let node = parse("[N35.6578589,E139.7474797]");
+        assert_eq!(
+            node,
+            Node::Coordinate {
+                lat: "35.6578589".to_string(),
+                lat_dir: 'N',
+                lon: "139.7474797".to_string(),
+                lon_dir: 'E',
+                zoom: None,
+            }
+        );
+    }
+
+    #[test]
+    fn test_coordinate_with_zoom() {
+        let node = parse("[N35.6578589,E139.7474797,Z14]");
+        assert_eq!(
+            node,
+            Node::Coordinate {
+                lat: "35.6578589".to_string(),
+                lat_dir: 'N',
+                lon: "139.7474797".to_string(),
+                lon_dir: 'E',
+                zoom: Some(14),
+            }
+        );
+    }
+
+    #[test]
+    fn test_coordinate_south_west() {
+        let node = parse("[S33.8688,W151.2093]");
+        assert_eq!(
+            node,
+            Node::Coordinate {
+                lat: "33.8688".to_string(),
+                lat_dir: 'S',
+                lon: "151.2093".to_string(),
+                lon_dir: 'W',
+                zoom: None,
+            }
+        );
+    }
+
+    #[test]
+    fn test_coordinate_zoom_zero() {
+        let node = parse("[N35.65,E139.74,Z0]");
+        assert_eq!(
+            node,
+            Node::Coordinate {
+                lat: "35.65".to_string(),
+                lat_dir: 'N',
+                lon: "139.74".to_string(),
+                lon_dir: 'E',
+                zoom: Some(0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_coordinate_empty_lat_falls_through() {
+        // [N,E] — lat is empty, f64 parse fails → Link::Page
+        let node = parse("[N,E]");
+        assert_eq!(node, Node::Link(Link::Page("N,E".to_string())));
+    }
+
+    #[test]
+    fn test_coordinate_invalid_dir_falls_through() {
+        // [North,East] — first char not N/S → Link::Page
+        let node = parse("[North,East]");
+        assert_eq!(node, Node::Link(Link::Page("North,East".to_string())));
     }
 }
