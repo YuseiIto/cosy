@@ -15,7 +15,8 @@
 //!
 //! let doc = cosy::parse("Hello [* world]!", &()).unwrap();
 //!
-//! // The document is a Vec<Block<()>>
+//! // With `&()` as the extension, `E::Output` is `()`,
+//! // so `doc` is a `Document<()>` (i.e. `Vec<Block<()>>`).
 //! assert_eq!(doc.len(), 1);
 //! ```
 //!
@@ -88,7 +89,8 @@ pub use extension::CosyParserExtension;
 ///
 /// * `input` - The Cosense/Scrapbox markup string to parse.
 /// * `extension` - An implementation of [`CosyParserExtension`]. Use `&()` if
-///   no custom extensions are needed.
+///   no custom extensions are needed. In that case `E::Output` is `()`,
+///   producing a `Document<()>`.
 ///
 /// # Errors
 ///
