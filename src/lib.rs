@@ -32,9 +32,10 @@
 //! - [`ast::BlockContent::Custom`] — a user-defined extension block
 //!
 //! Inline [`ast::Node`] variants include [`ast::Node::Text`], [`ast::Node::Link`],
-//! [`ast::Node::Image`], [`ast::Node::Icon`], [`ast::Node::InlineCode`],
-//! [`ast::Node::Math`], [`ast::Node::Hashtag`], [`ast::Node::Decoration`], and
-//! [`ast::Node::Custom`].
+//! [`ast::Node::Image`], [`ast::Node::LinkedImage`], [`ast::Node::Icon`],
+//! [`ast::Node::InlineCode`], [`ast::Node::Math`], [`ast::Node::Hashtag`],
+//! [`ast::Node::Decoration`], [`ast::Node::Strong`], [`ast::Node::Coordinate`],
+//! and [`ast::Node::Custom`].
 //!
 //! # Extending the parser
 //!
@@ -62,7 +63,7 @@
 //!
 //! | Feature | Description |
 //! |---------|-------------|
-//! | `serde` | Derive [`serde::Serialize`] and [`serde::Deserialize`] on all AST types |
+//! | `serde` | Derive `serde::Serialize` and `serde::Deserialize` on all AST types |
 
 pub mod ast;
 pub mod error;
