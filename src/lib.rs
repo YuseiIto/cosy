@@ -1,3 +1,4 @@
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 //! A parser for [Cosense] (formerly Scrapbox) markup syntax.
 //!
 //! cosy converts Cosense/Scrapbox markup text into a typed Abstract Syntax Tree (AST).

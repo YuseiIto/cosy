@@ -15,6 +15,10 @@ rust-version = "1.88"
 [features]
 serde = ["dep:serde"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 mime = "0.3.17"
 thiserror = "2"
