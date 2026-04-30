@@ -90,5 +90,10 @@ pub enum CodeBlockMeta {
     /// Either a filename or a filetype, but not both (`code:main.rs` or `code:rust`).
     Either(String),
     /// Both filename and explicit filetype (`code:main.rs(rust)`).
-    Both { filename: String, filetype: String },
+    Both {
+        /// The filename portion (e.g., `"main.rs"`).
+        filename: String,
+        /// The explicit filetype portion (e.g., `"rust"`).
+        filetype: String,
+    },
 }
