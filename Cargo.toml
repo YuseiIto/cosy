@@ -11,6 +11,11 @@ readme = "README.md"
 keywords = ["parser", "scrapbox", "cosense", "markup", "ast"]
 categories = ["parser-implementations", "text-processing"]
 rust-version = "1.88"
+exclude = [
+    "CLAUDE.md",
+    "AGENTS.md",
+    ".claude/",
+]
 
 [features]
 serde = ["dep:serde"]
