@@ -97,6 +97,40 @@ fn parse_coordinate() {
     }
 }
 
+fn line_text_content(block: &Block<()>) -> String {
+    match &block.content {
+        BlockContent::Line(nodes) => nodes
+            .iter()
+            .map(|n| match n {
+                Node::Text(s) => s.as_str(),
+                _ => "",
+            })
+            .collect(),
+        _ => String::new(),
+    }
+}
+
+#[test]
+fn lossless_lone_hash() {
+    let doc = cosy::parse("# alone\n", &()).unwrap();
+    assert_eq!(doc.len(), 1);
+    assert_eq!(line_text_content(&doc[0]), "# alone");
+}
+
+#[test]
+fn lossless_unclosed_bracket() {
+    let doc = cosy::parse("before [unclosed\n", &()).unwrap();
+    assert_eq!(doc.len(), 1);
+    assert_eq!(line_text_content(&doc[0]), "before [unclosed");
+}
+
+#[test]
+fn lossless_unclosed_backtick() {
+    let doc = cosy::parse("a `unclosed\n", &()).unwrap();
+    assert_eq!(doc.len(), 1);
+    assert_eq!(line_text_content(&doc[0]), "a `unclosed");
+}
+
 #[cfg(feature = "serde")]
 #[test]
 fn serde_roundtrip() {

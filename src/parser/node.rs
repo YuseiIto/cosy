@@ -10,12 +10,13 @@ use crate::ast::Node;
 use winnow::Result as PResult;
 use winnow::combinator::{alt, repeat};
 use winnow::prelude::*;
+use winnow::token::any;
 
 pub fn parse_nodes<'s, E>(input: &mut &'s str, extension: &'s E) -> PResult<Vec<Node<E::Output>>>
 where
     E: CosyParserExtension,
 {
-    repeat(
+    let nodes: Vec<Node<E::Output>> = repeat(
         0..,
         alt((
             parse_inline_code,
@@ -25,9 +26,11 @@ where
             parse_bracket(extension),
             parse_hashtag,
             parse_text,
+            parse_one_char_text,
         )),
     )
-    .parse_next(input)
+    .parse_next(input)?;
+    Ok(coalesce_text(nodes))
 }
 
 /// Like `parse_nodes` but without `parse_deco` — used inside decoration content
@@ -39,7 +42,7 @@ pub fn parse_nodes_no_deco<'s, E>(
 where
     E: CosyParserExtension,
 {
-    repeat(
+    let nodes: Vec<Node<E::Output>> = repeat(
         0..,
         alt((
             parse_inline_code,
@@ -48,9 +51,30 @@ where
             parse_bracket(extension),
             parse_hashtag,
             parse_text,
+            parse_one_char_text,
         )),
     )
-    .parse_next(input)
+    .parse_next(input)?;
+    Ok(coalesce_text(nodes))
+}
+
+/// Last-resort branch for `parse_nodes`: preserves a stray trigger char (`[`,
+/// `` ` ``, `#`) as plain text instead of letting `repeat(0..)` drop it.
+fn parse_one_char_text<T>(input: &mut &str) -> PResult<Node<T>> {
+    let c = any.parse_next(input)?;
+    Ok(Node::Text(c.to_string()))
+}
+
+/// Undoes the per-char fragmentation introduced by `parse_one_char_text`.
+fn coalesce_text<T>(nodes: Vec<Node<T>>) -> Vec<Node<T>> {
+    let mut out: Vec<Node<T>> = Vec::with_capacity(nodes.len());
+    for node in nodes {
+        match (out.last_mut(), node) {
+            (Some(Node::Text(prev)), Node::Text(curr)) => prev.push_str(&curr),
+            (_, n) => out.push(n),
+        }
+    }
+    out
 }
 
 #[cfg(test)]
@@ -99,6 +123,45 @@ mod tests {
         ];
 
         assert_eq!(result, expected);
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn parse_lone_hash_preserved() {
+        let mut input = "# alone";
+        let result = parse_nodes(&mut input, &()).unwrap();
+        assert_eq!(result, vec![Node::Text("# alone".to_string())]);
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn parse_unclosed_bracket_preserved() {
+        let mut input = "before [unclosed";
+        let result = parse_nodes(&mut input, &()).unwrap();
+        assert_eq!(result, vec![Node::Text("before [unclosed".to_string())]);
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn parse_unclosed_backtick_preserved() {
+        let mut input = "a `unclosed";
+        let result = parse_nodes(&mut input, &()).unwrap();
+        assert_eq!(result, vec![Node::Text("a `unclosed".to_string())]);
+        assert_eq!(input, "");
+    }
+
+    #[test]
+    fn parse_lone_hash_then_valid_hashtag() {
+        let mut input = "# bare and #tag end";
+        let result = parse_nodes(&mut input, &()).unwrap();
+        assert_eq!(
+            result,
+            vec![
+                Node::Text("# bare and ".to_string()),
+                Node::Hashtag("tag".to_string()),
+                Node::Text(" end".to_string()),
+            ]
+        );
         assert_eq!(input, "");
     }
 }
