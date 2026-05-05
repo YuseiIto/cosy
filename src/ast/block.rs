@@ -32,11 +32,10 @@ pub enum BlockContent<T> {
     /// A code block with optional filename and indentation.
     ///
     /// Starts with a `code:` prefix line; the body is the indented text that follows.
+    /// The indentation level of the block is on the enclosing [`Block::indent`].
     CodeBlock {
-        /// Filename and/or filetype metadata parsed from the `code:` prefix line.
+        /// Filename and/or language metadata parsed from the `code:` prefix line.
         meta: CodeBlockMeta,
-        /// The indentation level of the code block content.
-        indent: usize,
         /// The raw content of the code block.
         content: String,
     },
@@ -74,26 +73,36 @@ pub enum BlockContent<T> {
 
 /// Metadata parsed from a `code:` prefix line.
 ///
+/// Cosense's `code:` syntax does not distinguish between a filename and a
+/// language identifier in the single-token form. When only one token is
+/// present (e.g. `code:foo`), the variant [`CodeBlockMeta::NameOrLang`] is
+/// produced and the consumer is responsible for any further classification
+/// (e.g. by inspecting the file extension).
+///
 /// # Examples
 ///
 /// | Syntax | Variant |
 /// |--------|---------|
 /// | `code:` | `None` |
-/// | `code:main.rs` | `Either("main.rs")` |
-/// | `code:main.rs(rust)` | `Both { filename: "main.rs", filetype: "rust" }` |
+/// | `code:main.rs` | `NameOrLang("main.rs")` |
+/// | `code:rust` | `NameOrLang("rust")` |
+/// | `code:main.rs(rust)` | `Both { filename: "main.rs", language: "rust" }` |
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CodeBlockMeta {
-    /// No filename or filetype specified (`code:`).
+    /// No filename or language specified (`code:`).
     None,
-    /// Either a filename or a filetype, but not both (`code:main.rs` or `code:rust`).
-    Either(String),
-    /// Both filename and explicit filetype (`code:main.rs(rust)`).
+    /// A single token whose role (filename or language) is not determined by
+    /// the syntax. The `code:` form does not require a filename to have an
+    /// extension, so a bare `code:foo` cannot be classified by the parser.
+    NameOrLang(String),
+    /// Both filename and language are explicitly specified
+    /// (`code:main.rs(rust)`).
     Both {
         /// The filename portion (e.g., `"main.rs"`).
         filename: String,
-        /// The explicit filetype portion (e.g., `"rust"`).
-        filetype: String,
+        /// The language portion (e.g., `"rust"`).
+        language: String,
     },
 }

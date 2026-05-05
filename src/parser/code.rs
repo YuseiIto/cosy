@@ -31,14 +31,14 @@ where
                 match (fname, ftype) {
                     (f, t) if !f.is_empty() && !t.is_empty() => CodeBlockMeta::Both {
                         filename: f,
-                        filetype: t,
+                        language: t,
                     },
-                    (f, _) if !f.is_empty() => CodeBlockMeta::Either(f),
-                    (_, t) if !t.is_empty() => CodeBlockMeta::Either(t),
+                    (f, _) if !f.is_empty() => CodeBlockMeta::NameOrLang(f),
+                    (_, t) if !t.is_empty() => CodeBlockMeta::NameOrLang(t),
                     _ => CodeBlockMeta::None,
                 }
             } else {
-                CodeBlockMeta::Either(line.clone())
+                CodeBlockMeta::NameOrLang(line.clone())
             }
         }
         None => CodeBlockMeta::None,
@@ -86,11 +86,7 @@ where
 
     Ok(Block {
         indent,
-        content: BlockContent::CodeBlock {
-            meta,
-            indent,
-            content,
-        },
+        content: BlockContent::CodeBlock { meta, content },
     })
 }
 
@@ -115,8 +111,7 @@ mod tests {
         assert_eq!(
             block.content,
             BlockContent::CodeBlock {
-                meta: CodeBlockMeta::Either("example.rs".to_string()),
-                indent: 0,
+                meta: CodeBlockMeta::NameOrLang("example.rs".to_string()),
                 content: "fn main() {\nprintln!(\"Hello, world!\");\n}".to_string(),
             }
         );
@@ -134,7 +129,6 @@ mod tests {
             block.content,
             BlockContent::CodeBlock {
                 meta: CodeBlockMeta::None,
-                indent: 0,
                 content: "print('Hello, World!')".to_string(),
             }
         );
@@ -153,9 +147,8 @@ mod tests {
             BlockContent::CodeBlock {
                 meta: CodeBlockMeta::Both {
                     filename: "script.py".to_string(),
-                    filetype: "python".to_string(),
+                    language: "python".to_string(),
                 },
-                indent: 0,
                 content: "def greet():\nprint('Hello')".to_string(),
             }
         );
@@ -172,8 +165,7 @@ mod tests {
         assert_eq!(
             block.content,
             BlockContent::CodeBlock {
-                meta: CodeBlockMeta::Either("example.py".to_string()),
-                indent: 0,
+                meta: CodeBlockMeta::NameOrLang("example.py".to_string()),
                 content: "print('Hello, World!')".to_string(),
             }
         );
