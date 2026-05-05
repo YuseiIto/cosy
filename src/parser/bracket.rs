@@ -2,7 +2,7 @@ use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
-use crate::tokens::{ICON_SUFFIX, LBRACKET, MATH_BRACKET_PREFIX, RBRACKET};
+use crate::tokens::{ICON_SUFFIX, LBRACKET, RBRACKET};
 use crate::url::{UrlKind, infer_url};
 use winnow::Result as PResult;
 use winnow::combinator::{alt, delimited, opt, preceded};
@@ -13,7 +13,9 @@ use winnow::token::take_till;
 use super::node::parse_nodes;
 
 mod coordinate;
+mod math;
 use coordinate::parse_coordinate;
+use math::parse_math;
 
 pub fn parse_bracket<'s, 'i, E>(
     extension: &'s E,
@@ -29,12 +31,6 @@ where
         parse_coordinate,
         parse_links_and_pages(extension),
     )))
-}
-
-fn parse_math<T>(input: &mut &str) -> PResult<Node<T>> {
-    preceded(MATH_BRACKET_PREFIX, winnow::token::rest)
-        .map(|s: &str| Node::Math(s.trim().to_string()))
-        .parse_next(input)
 }
 
 fn parse_icon<T>(input: &mut &str) -> PResult<Node<T>> {
@@ -161,12 +157,6 @@ mod tests {
     fn parse(input: &str) -> Node<()> {
         let mut s = input;
         parse_bracket(&()).parse_next(&mut s).unwrap()
-    }
-
-    #[test]
-    fn test_math_inline() {
-        let node = parse("[$ y=a^2 + b^2]");
-        assert_eq!(node, Node::Math("y=a^2 + b^2".to_string()));
     }
 
     #[test]
