@@ -69,14 +69,12 @@ where
         }
 
         // 4. Links (recurse on label)
-        // Split by space
-
+        //
         // URLs never contain spaces, so the URL is always the first or last token.
         // Split at the first space to isolate a leading URL; at the last space for a trailing URL.
-        if content.contains(' ') {
-            let (first_token, rest) = content.split_once(' ').unwrap();
-            let (start, last_token) = content.rsplit_once(' ').unwrap();
-
+        if let Some((first_token, rest)) = content.split_once(' ')
+            && let Some((start, last_token)) = content.rsplit_once(' ')
+        {
             let first_token = first_token.trim();
             let last_token = last_token.trim();
 
