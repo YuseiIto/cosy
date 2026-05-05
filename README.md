@@ -39,7 +39,7 @@ for block in &doc {
 
 ### Custom syntax extensions
 
-Implement [`CosyParserExtension`](https://docs.rs/cosy/latest/cosy/trait.CosyParserExtension.html) to inject your own bracket or block syntax:
+Implement [`CosyParserExtension`](https://docs.rs/cosy/latest/cosy/trait.CosyParserExtension.html) to inject your own bracket syntax:
 
 ```rust
 use cosy::CosyParserExtension;
@@ -53,7 +53,6 @@ impl CosyParserExtension for MyExt {
     fn parse_bracket(&self, content: &str) -> Option<MySyntax> {
         content.strip_prefix("! ").map(|s| MySyntax::Highlight(s.to_string()))
     }
-    fn parse_block(&self, _content: &str) -> Option<MySyntax> { None }
 }
 
 let doc = cosy::parse("[! important]", &MyExt).unwrap();

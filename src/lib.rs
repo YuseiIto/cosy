@@ -53,7 +53,6 @@
 //!     fn parse_bracket(&self, content: &str) -> Option<MySyntax> {
 //!         content.strip_prefix("! ").map(|s| MySyntax::Highlight(s.to_string()))
 //!     }
-//!     fn parse_block(&self, _content: &str) -> Option<MySyntax> { None }
 //! }
 //!
 //! let doc = cosy::parse("[! important]", &MyExt).unwrap();

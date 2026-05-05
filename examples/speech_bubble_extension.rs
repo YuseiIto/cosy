@@ -27,13 +27,6 @@ impl CosyParserExtension for MyExtension {
             .strip_prefix("{ ")
             .map(|body| MySyntax::SpeechBubble(body.to_string()))
     }
-
-    /// Parses custom block content.
-    ///
-    /// This extension does not define any custom block-level syntax.
-    fn parse_block(&self, _content: &str) -> Option<Self::Output> {
-        None
-    }
 }
 
 fn main() {

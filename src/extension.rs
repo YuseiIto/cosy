@@ -1,53 +1,64 @@
-/// A trait that enables parsing of user-defined syntax extensions.
+/// A trait that enables parsing of user-defined bracket syntax.
 ///
 /// This trait allows users to inject custom syntax handling into the parser.
-/// It provides hooks for parsing content within brackets (`[...]`) and for
-/// defining custom block-level elements.
-/// Hooks are called before the default parsers.
+/// It provides a hook for parsing content within brackets (`[...]`) before
+/// any built-in bracket parser is tried.
 ///
-/// Implementors can define their own output type, which will be wrapped in
-/// the AST nodes.
+/// Implementors define their own [`Output`](Self::Output) type, which will be
+/// stored in [`crate::ast::Node::Custom`] when [`parse_bracket`](Self::parse_bracket)
+/// returns `Some`.
+///
+/// # Usage
+///
+/// Pass `&()` to [`crate::parse`] when no custom syntax is needed; the
+/// blanket [`CosyParserExtension`] impl on `()` always returns `None`,
+/// so all input falls through to the built-in parsers.
 pub trait CosyParserExtension {
     /// The type of the output produced by the custom parser.
-    /// This type will be stored in [`crate::ast::Node::Custom`] or [`crate::ast::BlockContent::Custom`].
+    ///
+    /// This type is stored in [`crate::ast::Node::Custom`] when
+    /// [`parse_bracket`](Self::parse_bracket) returns `Some`.
     type Output;
 
     /// Parses the content inside brackets and returns an optional custom output.
     ///
-    /// This method is called when the parser encounters a bracketed sequence.
-    /// If this method returns `Some`, the content is treated as a custom node.
-    /// If it returns `None`, the parser attempts to parse it as standard syntax
-    /// (e.g., links, decorations).
+    /// This method is called **before** any built-in bracket parser. If it
+    /// returns `Some`, the bracketed sequence becomes a [`crate::ast::Node::Custom`]
+    /// holding the returned value, and built-in interpretation (links,
+    /// decorations, icons, etc.) is skipped. If it returns `None`, the
+    /// parser falls through to the built-in bracket parsers.
     ///
     /// # Arguments
     ///
-    /// * `content` - The string content inside the brackets (excluding the brackets themselves).
+    /// * `content` — the string between the brackets, with the surrounding
+    ///   `[` and `]` removed but **otherwise unmodified** (no trimming, no
+    ///   prefix stripping). Examples:
+    ///
+    ///   | Source       | `content`     |
+    ///   |--------------|---------------|
+    ///   | `[abc]`      | `"abc"`       |
+    ///   | `[* bold]`   | `"* bold"`    |
+    ///   | `[/ italic]` | `"/ italic"`  |
+    ///   | `[$ x^2]`    | `"$ x^2"`     |
     ///
     /// # Returns
     ///
-    /// * `Option<Self::Output>` - The custom parsed object if successful, or `None`.
+    /// * `Option<Self::Output>` — the custom parsed value if this
+    ///   `content` is recognized by the extension, or `None` to fall back
+    ///   to built-in parsers.
+    ///
+    /// # Note on recursion
+    ///
+    /// The returned `Self::Output` is treated as a terminal AST node —
+    /// `cosy` does **not** recursively re-parse the contained text. If you
+    /// need nested inline parsing, parse the relevant fragments yourself
+    /// inside the extension before constructing `Self::Output`.
     fn parse_bracket(&self, content: &str) -> Option<Self::Output>;
-
-    /// Parses block-level content and returns an optional custom output.
-    ///
-    /// This method allows for defining entire blocks that follow custom rules.
-    ///
-    /// # Arguments
-    ///
-    /// * `content` - The content of the block.
-    ///
-    /// # Returns
-    ///
-    /// * `Option<Self::Output>` - The custom parsed object if successful, or `None`.
-    fn parse_block(&self, content: &str) -> Option<Self::Output>;
 }
 
 impl CosyParserExtension for () {
     type Output = ();
     fn parse_bracket(&self, _content: &str) -> Option<Self::Output> {
-        None
-    }
-    fn parse_block(&self, _content: &str) -> Option<Self::Output> {
         None
     }
 }
@@ -69,10 +80,6 @@ mod tests {
             content
                 .strip_prefix("{ ")
                 .map(|body| MySyntax::SpeechBubble(body.to_string()))
-        }
-
-        fn parse_block(&self, _content: &str) -> Option<Self::Output> {
-            None
         }
     }
 
