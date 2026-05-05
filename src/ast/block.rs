@@ -62,13 +62,34 @@ pub enum BlockContent<T> {
 
     /// A command-line notation block (starts with `$ ` or `% `).
     ///
-    /// Content after the prefix is stored as a raw string; not parsed as inline nodes.
-    CommandLine(String),
+    /// `prompt` records which prefix character was used; `command` is the
+    /// raw text after the prefix (not parsed as inline nodes).
+    CommandLine {
+        /// The shell prompt character that introduced this command.
+        prompt: ShellPrompt,
+        /// The raw command text after the prompt and the trailing space.
+        command: String,
+    },
 
     /// A custom block-level extension.
     ///
     /// This allows for extending the parser with custom block types (e.g., YouTube embeddings, special div blocks).
     Custom(T),
+}
+
+/// The prompt character that introduced a [`BlockContent::CommandLine`].
+///
+/// Cosense supports two prompt styles for command-line notation:
+/// `$` for Bourne shell-family prompts and `%` for csh/tcsh-family prompts.
+/// Renderers may use this to display the original prompt character.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum ShellPrompt {
+    /// `$` — Bourne shell-family prompt.
+    Dollar,
+    /// `%` — csh/tcsh-family prompt.
+    Percent,
 }
 
 /// Metadata parsed from a `code:` prefix line.

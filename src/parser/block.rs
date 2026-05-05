@@ -74,13 +74,25 @@ mod tests {
     #[test]
     fn dispatch_commandline_dollar() {
         let block = parse("$ cargo build\n");
-        assert!(matches!(block.content, BlockContent::CommandLine(_)));
+        assert!(matches!(
+            block.content,
+            BlockContent::CommandLine {
+                prompt: crate::ast::ShellPrompt::Dollar,
+                ..
+            }
+        ));
     }
 
     #[test]
     fn dispatch_commandline_percent() {
         let block = parse("% ls -la\n");
-        assert!(matches!(block.content, BlockContent::CommandLine(_)));
+        assert!(matches!(
+            block.content,
+            BlockContent::CommandLine {
+                prompt: crate::ast::ShellPrompt::Percent,
+                ..
+            }
+        ));
     }
 
     #[test]

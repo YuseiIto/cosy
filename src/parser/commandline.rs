@@ -1,10 +1,18 @@
-use crate::ast::{Block, BlockContent};
+use crate::ast::{Block, BlockContent, ShellPrompt};
 use winnow::Result as PResult;
+use winnow::error::ContextError;
 use winnow::prelude::*;
 use winnow::token::{any, take_till};
 
 pub fn parse_commandline<T>(input: &mut &str, indent: usize) -> PResult<Block<T>> {
-    // Consume '$'
+    // Determine prompt from the first character.
+    let prompt = match input.chars().next() {
+        Some('$') => ShellPrompt::Dollar,
+        Some('%') => ShellPrompt::Percent,
+        _ => return Err(ContextError::new()),
+    };
+
+    // Consume the prompt character
     let _ = any.parse_next(input)?;
     // Consume mandatory space
     let _ = any.parse_next(input)?;
@@ -18,7 +26,10 @@ pub fn parse_commandline<T>(input: &mut &str, indent: usize) -> PResult<Block<T>
 
     Ok(Block {
         indent,
-        content: BlockContent::CommandLine(content.to_string()),
+        content: BlockContent::CommandLine {
+            prompt,
+            command: content.to_string(),
+        },
     })
 }
 
@@ -36,7 +47,10 @@ mod tests {
         assert_eq!(block.indent, 0);
         assert_eq!(
             block.content,
-            BlockContent::CommandLine("cargo build".to_string())
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Dollar,
+                command: "cargo build".to_string(),
+            }
         );
     }
 
@@ -48,7 +62,10 @@ mod tests {
         let block = result.unwrap();
         assert_eq!(
             block.content,
-            BlockContent::CommandLine("ls -la".to_string())
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Dollar,
+                command: "ls -la".to_string(),
+            }
         );
     }
 
@@ -58,7 +75,13 @@ mod tests {
         let result = parse_commandline::<()>(&mut input, 0);
         assert!(result.is_ok());
         let block = result.unwrap();
-        assert_eq!(block.content, BlockContent::CommandLine("".to_string()));
+        assert_eq!(
+            block.content,
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Dollar,
+                command: "".to_string(),
+            }
+        );
     }
 
     #[test]
@@ -70,7 +93,10 @@ mod tests {
         assert_eq!(block.indent, 2);
         assert_eq!(
             block.content,
-            BlockContent::CommandLine("echo hello".to_string())
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Dollar,
+                command: "echo hello".to_string(),
+            }
         );
     }
 
@@ -82,7 +108,10 @@ mod tests {
         let block = result.unwrap();
         assert_eq!(
             block.content,
-            BlockContent::CommandLine("ls -la".to_string())
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Percent,
+                command: "ls -la".to_string(),
+            }
         );
     }
 
@@ -95,7 +124,10 @@ mod tests {
         assert_eq!(block.indent, 1);
         assert_eq!(
             block.content,
-            BlockContent::CommandLine("echo hello".to_string())
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Percent,
+                command: "echo hello".to_string(),
+            }
         );
     }
 
@@ -107,7 +139,10 @@ mod tests {
         let block = result.unwrap();
         assert_eq!(
             block.content,
-            BlockContent::CommandLine("git commit -m \"[fix] bug\"".to_string())
+            BlockContent::CommandLine {
+                prompt: ShellPrompt::Dollar,
+                command: "git commit -m \"[fix] bug\"".to_string(),
+            }
         );
     }
 }
