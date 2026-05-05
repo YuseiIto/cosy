@@ -82,7 +82,7 @@ pub use extension::CosyParserExtension;
 /// `Vec<Block<E::Output>>`).
 ///
 /// The function supports extensibility through the [`CosyParserExtension`] trait,
-/// allowing users to define custom syntax for brackets and blocks.
+/// allowing users to define custom syntax for brackets.
 ///
 /// # Arguments
 ///

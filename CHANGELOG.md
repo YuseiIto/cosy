@@ -14,17 +14,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of the cosy parser library.
 - Block-level parsing: indented lists, code blocks (`code:`), tables (`table:`),
-  quotes (`>`), Helpfeel (`? `), and command-line notation (`$ `).
+  quotes (`>`), Helpfeel (`? `), and command-line notation (`$ ` / `% `).
 - Inline parsing: internal/external links, cross-project links, labeled links,
   images (MIME-detected), linked images, icons with repeat count (`[name.icon*N]`),
   inline code, math (`[$ expr]`), decorations (`[* bold]`, `[/ italic]`, etc.),
   and hashtags (`#tag`).
 - `[[text]]` strong (large bold) syntax, including `[[image]]`, `[[url]]`, and
   `[[name.icon]]` variants.
-- `% command` csh-style command-line notation (alongside existing `$ command`).
 - `[N35.xx,E139.xx]` geographic coordinate syntax with optional zoom level
-  (`[N35.xx,E139.xx,Z14]`), parsed as `Node::Coordinate`.
-- `CosyParserExtension` trait for user-defined bracket and block syntax extensions.
-- Optional `serde` feature for serialization/deserialization of AST types.
-- `ParseError` type (using `thiserror`) so callers do not need a direct `winnow`
-  dependency.
+  (`[N35.xx,E139.xx,Z14]`), parsed as `Node::Coordinate` with `f64` latitude
+  and longitude.
+- `CosyParserExtension` trait with a `parse_bracket` hook for user-defined
+  bracket syntax extensions.
+- `ShellPrompt { Dollar, Percent }` enum on `BlockContent::CommandLine` so
+  renderers can recover the original prompt character.
+- `Document<T>` newtype around `Vec<Block<T>>` with `Deref<Target = [Block<T>]>`
+  and `IntoIterator` impls.
+- `cosy::Url` re-export of [`url::Url`]; used as the type of
+  `Link::WithLabel.href`.
+- Optional `serde` feature for serialization/deserialization of AST types
+  (also enables `url/serde`).
+- `ParseError` type (using `thiserror`) so callers do not need a direct
+  `winnow` dependency.

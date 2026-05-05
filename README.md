@@ -60,6 +60,15 @@ let doc = cosy::parse("[! important]", &MyExt).unwrap();
 
 See [`examples/speech_bubble_extension.rs`](examples/speech_bubble_extension.rs) for a full example.
 
+### URL handling
+
+Labeled links (`[label https://...]`) carry a parsed [`url::Url`](https://docs.rs/url) in
+`Link::WithLabel.href`. `cosy` re-exports the `Url` type at its crate root for convenience:
+
+```rust
+use cosy::Url;
+```
+
 ## Supported syntax
 
 ### Block-level
