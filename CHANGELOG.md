@@ -24,9 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `[[text]]` strong (large bold) syntax, including `[[image]]`, `[[url]]`, and
   `[[name.icon]]` variants.
 - `[N35.xx,E139.xx]` geographic coordinate syntax with optional zoom level
-  (`[N35.xx,E139.xx,Z14]`), parsed as `Node::Coordinate` with `f64` latitude
-  and longitude and typed `LatitudeDirection` / `LongitudeDirection`
-  hemisphere enums.
+  (`[N35.xx,E139.xx,Z14]`), parsed as `Node::Coordinate` with typed `Latitude`
+  and `Longitude` enums containing `f64` values.
 - `CosyParserExtension` trait with a `parse_bracket` hook for user-defined
   bracket syntax extensions.
 - `ShellPrompt { Dollar, Percent }` enum on `BlockContent::CommandLine` so

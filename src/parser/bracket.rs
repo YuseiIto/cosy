@@ -2,12 +2,14 @@ use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
-use crate::ast::{LatitudeDirection, LongitudeDirection};
+use crate::ast::{Latitude, Longitude};
 use crate::tokens::{ICON_SUFFIX, LBRACKET, MATH_BRACKET_PREFIX, RBRACKET};
 use crate::url::{UrlKind, infer_url};
-use winnow::combinator::delimited;
+use winnow::ascii::{dec_uint, float};
+use winnow::combinator::{alt, delimited, opt, preceded};
 use winnow::error::ContextError;
 use winnow::prelude::*;
+use winnow::Result as PResult;
 
 use super::node::parse_nodes;
 
@@ -152,67 +154,36 @@ where
     }
 }
 
-/// Parses a direction prefix + numeric value from a coordinate component.
-/// `parse_dir` maps the prefix character to a typed hemisphere; the rest is
-/// parsed as `f64`.
-fn parse_coord<D>(s: &str, parse_dir: impl Fn(char) -> Option<D>) -> Option<(D, f64)> {
-    let dir = parse_dir(s.chars().next()?)?;
-    let val = &s[1..]; // prefix is always ASCII
-    let parsed = val.parse::<f64>().ok()?;
-    Some((dir, parsed))
-}
-
-fn parse_lat_dir(c: char) -> Option<LatitudeDirection> {
-    match c {
-        'N' => Some(LatitudeDirection::North),
-        'S' => Some(LatitudeDirection::South),
-        _ => None,
-    }
-}
-
-fn parse_lon_dir(c: char) -> Option<LongitudeDirection> {
-    match c {
-        'E' => Some(LongitudeDirection::East),
-        'W' => Some(LongitudeDirection::West),
-        _ => None,
-    }
-}
-
 /// Tries to parse `content` as coordinate syntax `[NS]{lat},{EW}{lon}[,Z{zoom}]`.
 /// Returns `Some(Node::Coordinate {...})` on success, `None` otherwise.
 fn try_parse_coordinate<T>(content: &str) -> Option<Node<T>> {
-    if !matches!(content.as_bytes().first(), Some(b'N' | b'S')) {
-        return None;
+    fn parser<T>(input: &mut &str) -> PResult<Node<T>> {
+        (
+            alt((
+                preceded('N', float).map(Latitude::North),
+                preceded('S', float).map(Latitude::South),
+            )),
+            preceded(',', alt((
+                preceded('E', float).map(Longitude::East),
+                preceded('W', float).map(Longitude::West),
+            ))),
+            opt(preceded(",Z", dec_uint)),
+        )
+            .map(|(latitude, longitude, zoom)| Node::Coordinate {
+                latitude,
+                longitude,
+                zoom,
+            })
+            .parse_next(input)
     }
 
-    let parts: Vec<&str> = content.split(',').collect();
-    if parts.len() < 2 || parts.len() > 3 {
-        return None;
-    }
-
-    let (lat_dir, lat) = parse_coord(parts[0], parse_lat_dir)?;
-    let (lon_dir, lon) = parse_coord(parts[1], parse_lon_dir)?;
-
-    let zoom = if let Some(z_str) = parts.get(2) {
-        let z = z_str.strip_prefix('Z')?;
-        Some(z.parse::<u32>().ok()?)
-    } else {
-        None
-    };
-
-    Some(Node::Coordinate {
-        lat,
-        lat_dir,
-        lon,
-        lon_dir,
-        zoom,
-    })
+    parser.parse(content).ok()
 }
 
 #[cfg(test)]
 mod tests {
     use super::parse_bracket;
-    use crate::ast::{LatitudeDirection, Link, LongitudeDirection, Node};
+    use crate::ast::{Latitude, Link, Longitude, Node};
     use winnow::Parser;
 
     fn parse(input: &str) -> Node<()> {
@@ -482,10 +453,8 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: 35.6578589,
-                lat_dir: LatitudeDirection::North,
-                lon: 139.7474797,
-                lon_dir: LongitudeDirection::East,
+                latitude: Latitude::North(35.6578589),
+                longitude: Longitude::East(139.7474797),
                 zoom: None,
             }
         );
@@ -497,10 +466,8 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: 35.6578589,
-                lat_dir: LatitudeDirection::North,
-                lon: 139.7474797,
-                lon_dir: LongitudeDirection::East,
+                latitude: Latitude::North(35.6578589),
+                longitude: Longitude::East(139.7474797),
                 zoom: Some(14),
             }
         );
@@ -512,10 +479,8 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: 33.8688,
-                lat_dir: LatitudeDirection::South,
-                lon: 151.2093,
-                lon_dir: LongitudeDirection::West,
+                latitude: Latitude::South(33.8688),
+                longitude: Longitude::West(151.2093),
                 zoom: None,
             }
         );
@@ -527,10 +492,8 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: 35.65,
-                lat_dir: LatitudeDirection::North,
-                lon: 139.74,
-                lon_dir: LongitudeDirection::East,
+                latitude: Latitude::North(35.65),
+                longitude: Longitude::East(139.74),
                 zoom: Some(0),
             }
         );

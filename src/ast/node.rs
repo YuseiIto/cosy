@@ -66,13 +66,9 @@ pub enum Node<T> {
     /// Parsed from `[N35.65,E139.74]` or `[N35.65,E139.74,Z14]`.
     Coordinate {
         /// Latitude value (e.g., `35.6578589`).
-        lat: f64,
-        /// Latitude hemisphere.
-        lat_dir: LatitudeDirection,
+        latitude: Latitude,
         /// Longitude value (e.g., `139.7474797`).
-        lon: f64,
-        /// Longitude hemisphere.
-        lon_dir: LongitudeDirection,
+        longitude: Longitude,
         /// Optional zoom level (e.g., `Some(14)`).
         zoom: Option<u32>,
     },
@@ -83,24 +79,24 @@ pub enum Node<T> {
     Custom(T),
 }
 
-/// Hemisphere of a latitude value in [`Node::Coordinate`].
+/// Latitude value in [`Node::Coordinate`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum LatitudeDirection {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Latitude {
     /// Northern hemisphere (`N` prefix).
-    North,
+    North(f64),
     /// Southern hemisphere (`S` prefix).
-    South,
+    South(f64),
 }
 
-/// Hemisphere of a longitude value in [`Node::Coordinate`].
+/// Longitude value in [`Node::Coordinate`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum LongitudeDirection {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Longitude {
     /// Eastern hemisphere (`E` prefix).
-    East,
+    East(f64),
     /// Western hemisphere (`W` prefix).
-    West,
+    West(f64),
 }
 
 /// Represents a link target and optional label.
