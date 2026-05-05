@@ -18,38 +18,39 @@ pub fn parse_bracket<'s, 'i, E>(
     extension: &'s E,
 ) -> impl Parser<&'i str, Node<E::Output>, ContextError> + 's
 where
+    'i: 's,
     E: CosyParserExtension,
 {
-    move |input: &mut &'i str| {
-        let content: &str =
-            delimited(LBRACKET, take_bracket_content, RBRACKET).parse_next(input)?;
+    delimited(LBRACKET, take_bracket_content, RBRACKET).and_then(alt((
+        parse_math,
+        parse_icon,
+        parse_project_link,
+        parse_coordinate,
+        parse_links_and_pages(extension),
+    )))
+}
 
-        let mut inner_input = content;
-        alt((
-            parse_math,
-            parse_icon,
-            parse_project_link,
-            parse_coordinate,
-            parse_links_and_pages(extension),
-        ))
-        .parse_next(&mut inner_input)
-    }
+fn parse_latitude(input: &mut &str) -> PResult<Latitude> {
+    alt((
+        preceded('N', float).map(Latitude::North),
+        preceded('S', float).map(Latitude::South),
+    ))
+    .parse_next(input)
+}
+
+fn parse_longitude(input: &mut &str) -> PResult<Longitude> {
+    alt((
+        preceded('E', float).map(Longitude::East),
+        preceded('W', float).map(Longitude::West),
+    ))
+    .parse_next(input)
 }
 
 fn parse_coordinate<T>(input: &mut &str) -> PResult<Node<T>> {
     terminated(
         (
-            alt((
-                preceded('N', float).map(Latitude::North),
-                preceded('S', float).map(Latitude::South),
-            )),
-            preceded(
-                ',',
-                alt((
-                    preceded('E', float).map(Longitude::East),
-                    preceded('W', float).map(Longitude::West),
-                )),
-            ),
+            parse_latitude,
+            preceded(',', parse_longitude),
             opt(preceded(",Z", dec_uint)),
         ),
         eof,
