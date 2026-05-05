@@ -67,12 +67,12 @@ pub enum Node<T> {
     Coordinate {
         /// Latitude value (e.g., `35.6578589`).
         lat: f64,
-        /// Latitude direction: `'N'` (north) or `'S'` (south).
-        lat_dir: char,
+        /// Latitude hemisphere.
+        lat_dir: LatitudeDirection,
         /// Longitude value (e.g., `139.7474797`).
         lon: f64,
-        /// Longitude direction: `'E'` (east) or `'W'` (west).
-        lon_dir: char,
+        /// Longitude hemisphere.
+        lon_dir: LongitudeDirection,
         /// Optional zoom level (e.g., `Some(14)`).
         zoom: Option<u32>,
     },
@@ -81,6 +81,26 @@ pub enum Node<T> {
     ///
     /// This allows for extending the parser with custom inline types (e.g., colored text, warning badges).
     Custom(T),
+}
+
+/// Hemisphere of a latitude value in [`Node::Coordinate`].
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum LatitudeDirection {
+    /// Northern hemisphere (`N` prefix).
+    North,
+    /// Southern hemisphere (`S` prefix).
+    South,
+}
+
+/// Hemisphere of a longitude value in [`Node::Coordinate`].
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum LongitudeDirection {
+    /// Eastern hemisphere (`E` prefix).
+    East,
+    /// Western hemisphere (`W` prefix).
+    West,
 }
 
 /// Represents a link target and optional label.
