@@ -29,7 +29,7 @@ mime = "0.3.17"
 thiserror = "2"
 mime_guess = "2.0.5"
 url = "2.5.8"
-winnow = "0.7.14"
+winnow = "1"
 serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
