@@ -37,5 +37,7 @@ pub(crate) fn parse_inner<'s, E>(
 where
     E: CosyParserExtension,
 {
-    repeat(0.., |i: &mut &'s str| parse_block(i, extension)).parse_next(input)
+    let blocks: Vec<_> =
+        repeat(0.., |i: &mut &'s str| parse_block(i, extension)).parse_next(input)?;
+    Ok(Document(blocks))
 }

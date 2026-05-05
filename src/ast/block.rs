@@ -2,8 +2,58 @@
 
 use super::node::Node;
 
-/// Represents a complete document, which is a sequence of blocks.
-pub type Document<T> = Vec<Block<T>>;
+/// A complete parsed document — a sequence of [`Block`]s.
+///
+/// `Document` is a thin newtype around `Vec<Block<T>>`. It implements
+/// [`Deref`](std::ops::Deref)`<Target = [Block<T>]>` so most read-only slice
+/// operations (`len`, indexing, iteration) work directly. The inner `Vec` is
+/// also accessible via the `.0` field.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct Document<T>(pub Vec<Block<T>>);
+
+impl<T> std::ops::Deref for Document<T> {
+    type Target = [Block<T>];
+    fn deref(&self) -> &[Block<T>] {
+        &self.0
+    }
+}
+
+impl<T> std::ops::DerefMut for Document<T> {
+    fn deref_mut(&mut self) -> &mut [Block<T>] {
+        &mut self.0
+    }
+}
+
+impl<T> IntoIterator for Document<T> {
+    type Item = Block<T>;
+    type IntoIter = std::vec::IntoIter<Block<T>>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a Document<T> {
+    type Item = &'a Block<T>;
+    type IntoIter = std::slice::Iter<'a, Block<T>>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut Document<T> {
+    type Item = &'a mut Block<T>;
+    type IntoIter = std::slice::IterMut<'a, Block<T>>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
+    }
+}
+
+impl<T> From<Vec<Block<T>>> for Document<T> {
+    fn from(v: Vec<Block<T>>) -> Self {
+        Document(v)
+    }
+}
 
 // --------------------------------------------------------
 // Block level (line-based structure)

@@ -79,7 +79,8 @@ pub use extension::CosyParserExtension;
 /// Parses an input string into a [`ast::Document`] AST.
 ///
 /// This is the main entry point of the parser. It processes the entire input
-/// string and returns a `Document` (a `Vec<Block<E::Output>>`).
+/// string and returns a [`ast::Document`] (a thin newtype around
+/// `Vec<Block<E::Output>>`).
 ///
 /// The function supports extensibility through the [`CosyParserExtension`] trait,
 /// allowing users to define custom syntax for brackets and blocks.
