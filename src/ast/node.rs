@@ -18,14 +18,14 @@ pub enum Node<T> {
     Link(Link<T>),
 
     /// An image reference.
-    Image(String),
+    Image(url::Url),
 
     /// An image with a clickable link.
     LinkedImage {
         /// URL of the image to display.
-        src: String,
+        src: url::Url,
         /// URL to navigate to when clicked.
-        href: String,
+        href: url::Url,
     },
 
     /// An icon reference.
@@ -91,7 +91,7 @@ pub enum Link<T> {
     /// A link to another page (internal link).
     Page(String),
     /// A raw URL (external link).
-    Url(String),
+    Url(url::Url),
     /// A link with an explicit label.
     ///
     /// `WithLabel` is only produced when one of the bracket tokens parses as

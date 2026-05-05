@@ -40,7 +40,10 @@ mod tests {
 
     #[test]
     fn test_infer_url_kind() {
-        assert_eq!(kind_of("https://example.com/image.png"), Some(UrlKind::Image));
+        assert_eq!(
+            kind_of("https://example.com/image.png"),
+            Some(UrlKind::Image)
+        );
         assert_eq!(
             kind_of("https://example.com/document.pdf"),
             Some(UrlKind::Other)

@@ -83,17 +83,17 @@ where
             // Probe each end for a URL once. The chosen side's parsed Url is
             // threaded through into the WithLabel arms below, so we never
             // re-parse a URL we have already classified.
-            let (left, left_url, right, right_url) =
-                if let Some(first_url) = infer_url(first_token) {
-                    // [url ...label...]
-                    (first_token, Some(first_url), rest, infer_url(rest))
-                } else if let Some(last_url) = infer_url(last_token) {
-                    // [...label... url]
-                    (start, infer_url(start), last_token, Some(last_url))
-                } else {
-                    // [Page Name With Spaces]
-                    return Ok(Node::Link(Link::Page(content.to_string())));
-                };
+            let (left, left_url, right, right_url) = if let Some(first_url) = infer_url(first_token)
+            {
+                // [url ...label...]
+                (first_token, Some(first_url), rest, infer_url(rest))
+            } else if let Some(last_url) = infer_url(last_token) {
+                // [...label... url]
+                (start, infer_url(start), last_token, Some(last_url))
+            } else {
+                // [Page Name With Spaces]
+                return Ok(Node::Link(Link::Page(content.to_string())));
+            };
 
             let left_kind = left_url.as_ref().map(|(_, k)| *k);
             let right_kind = right_url.as_ref().map(|(_, k)| *k);
@@ -101,24 +101,21 @@ where
             return match (left_kind, right_kind) {
                 (Some(UrlKind::Image), Some(UrlKind::Image)) => {
                     // [img1 img2] → display img2, link to img1
-                    Ok(Node::LinkedImage {
-                        src: right.to_string(),
-                        href: left.to_string(),
-                    })
+                    let (href, _) = left_url.expect("left_kind is Some");
+                    let (src, _) = right_url.expect("right_kind is Some");
+                    Ok(Node::LinkedImage { src, href })
                 }
                 (Some(UrlKind::Image), Some(UrlKind::Other)) => {
                     // [img link] → display img, link to link
-                    Ok(Node::LinkedImage {
-                        src: left.to_string(),
-                        href: right.to_string(),
-                    })
+                    let (src, _) = left_url.expect("left_kind is Some");
+                    let (href, _) = right_url.expect("right_kind is Some");
+                    Ok(Node::LinkedImage { src, href })
                 }
                 (Some(UrlKind::Other), Some(UrlKind::Image)) => {
                     // [link img] → display img, link to link
-                    Ok(Node::LinkedImage {
-                        src: right.to_string(),
-                        href: left.to_string(),
-                    })
+                    let (href, _) = left_url.expect("left_kind is Some");
+                    let (src, _) = right_url.expect("right_kind is Some");
+                    Ok(Node::LinkedImage { src, href })
                 }
                 (Some(UrlKind::Other), _) => {
                     // [url label...] → multi-word label linking to url
@@ -147,8 +144,8 @@ where
         }
 
         match infer_url(content) {
-            Some((_, UrlKind::Image)) => Ok(Node::Image(content.to_string())),
-            Some((_, UrlKind::Other)) => Ok(Node::Link(Link::Url(content.to_string()))),
+            Some((url, UrlKind::Image)) => Ok(Node::Image(url)),
+            Some((url, UrlKind::Other)) => Ok(Node::Link(Link::Url(url))),
             None => Ok(Node::Link(Link::Page(content.to_string()))),
         }
     }
@@ -309,8 +306,8 @@ mod tests {
         assert_eq!(
             node,
             Node::LinkedImage {
-                src: IMAGE_URL.to_string(),
-                href: LINK_URL.to_string(),
+                src: ::url::Url::parse(IMAGE_URL).unwrap(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
             }
         );
     }
@@ -322,8 +319,8 @@ mod tests {
         assert_eq!(
             node,
             Node::LinkedImage {
-                src: IMAGE_URL.to_string(),
-                href: LINK_URL.to_string(),
+                src: ::url::Url::parse(IMAGE_URL).unwrap(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
             }
         );
     }
@@ -335,8 +332,8 @@ mod tests {
         assert_eq!(
             node,
             Node::LinkedImage {
-                src: IMAGE_URL_2.to_string(),
-                href: IMAGE_URL.to_string(),
+                src: ::url::Url::parse(IMAGE_URL_2).unwrap(),
+                href: ::url::Url::parse(IMAGE_URL).unwrap(),
             }
         );
     }

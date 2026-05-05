@@ -44,10 +44,8 @@ where
                 count: 1,
             }],
             None => match infer_url(content) {
-                Some((_, UrlKind::Image)) => vec![Node::Image(content.to_string())],
-                Some((_, UrlKind::Other)) => {
-                    vec![Node::Link(crate::ast::Link::Url(content.to_string()))]
-                }
+                Some((url, UrlKind::Image)) => vec![Node::Image(url)],
+                Some((url, UrlKind::Other)) => vec![Node::Link(crate::ast::Link::Url(url))],
                 None => parse_nodes_no_deco(&mut content, extension)?,
             },
         };
@@ -105,7 +103,7 @@ mod tests {
         assert_eq!(
             result,
             Node::Strong(vec![Node::Image(
-                "https://example.com/photo.png".to_string()
+                ::url::Url::parse("https://example.com/photo.png").unwrap()
             )])
         );
         assert_eq!(input, "");
@@ -118,7 +116,7 @@ mod tests {
         assert_eq!(
             result,
             Node::Strong(vec![Node::Link(crate::ast::Link::Url(
-                "https://example.com/page".to_string()
+                ::url::Url::parse("https://example.com/page").unwrap()
             ))])
         );
         assert_eq!(input, "");
