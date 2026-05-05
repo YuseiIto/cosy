@@ -117,7 +117,7 @@ mod tests {
         let expected = vec![
             Node::Link(Link::WithLabel {
                 label: vec![Node::Text("Link text".to_string())],
-                href: "http://example.com".to_string(),
+                href: ::url::Url::parse("http://example.com").unwrap(),
             }),
             Node::Text(" and more text".to_string()),
         ];

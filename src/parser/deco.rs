@@ -63,7 +63,7 @@ mod tests {
             nodes: vec![
                 Node::Text("Click ".to_string()),
                 Node::Link(Link::WithLabel {
-                    href: "http://example.com".to_string(),
+                    href: ::url::Url::parse("http://example.com").unwrap(),
                     label: vec![Node::Text("here".to_string())],
                 }),
             ],

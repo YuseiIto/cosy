@@ -93,9 +93,12 @@ pub enum Link<T> {
     /// A raw URL (external link).
     Url(String),
     /// A link with an explicit label.
+    ///
+    /// `WithLabel` is only produced when one of the bracket tokens parses as
+    /// a URL, so `href` is always a valid [`url::Url`].
     WithLabel {
-        /// The destination URL or page name.
-        href: String,
+        /// The destination URL.
+        href: url::Url,
         /// The label content, which can contain other inline nodes.
         ///
         /// The label might contain `Custom` nodes.

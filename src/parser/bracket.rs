@@ -121,19 +121,15 @@ where
                     // [url label...] → multi-word label linking to url
                     let mut label_input = right;
                     let nodes = parse_nodes(&mut label_input, extension)?;
-                    Ok(Node::Link(Link::WithLabel {
-                        href: left.to_string(),
-                        label: nodes,
-                    }))
+                    let href = ::url::Url::parse(left).map_err(|_| ContextError::new())?;
+                    Ok(Node::Link(Link::WithLabel { href, label: nodes }))
                 }
                 (_, Some(UrlKind::Other) | Some(UrlKind::Image)) => {
                     // [...label url] → multi-word label linking to url
                     let mut label_input = left;
                     let nodes = parse_nodes(&mut label_input, extension)?;
-                    Ok(Node::Link(Link::WithLabel {
-                        href: right.to_string(),
-                        label: nodes,
-                    }))
+                    let href = ::url::Url::parse(right).map_err(|_| ContextError::new())?;
+                    Ok(Node::Link(Link::WithLabel { href, label: nodes }))
                 }
                 _ => {
                     // [Page Name] - space inside page name
@@ -350,7 +346,7 @@ mod tests {
         assert_eq!(
             node,
             Node::Link(Link::WithLabel {
-                href: LINK_URL.to_string(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
                 label: vec![Node::Text("label".to_string())],
             })
         );
@@ -363,7 +359,7 @@ mod tests {
         assert_eq!(
             node,
             Node::Link(Link::WithLabel {
-                href: LINK_URL.to_string(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
                 label: vec![Node::Text("label".to_string())],
             })
         );
@@ -376,7 +372,7 @@ mod tests {
         assert_eq!(
             node,
             Node::Link(Link::WithLabel {
-                href: LINK_URL.to_string(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
                 label: vec![Node::Text("some text".to_string())],
             })
         );
@@ -389,7 +385,7 @@ mod tests {
         assert_eq!(
             node,
             Node::Link(Link::WithLabel {
-                href: LINK_URL.to_string(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
                 label: vec![Node::Text("some text".to_string())],
             })
         );
@@ -404,7 +400,7 @@ mod tests {
         assert_eq!(
             node,
             Node::Link(Link::WithLabel {
-                href: LINK_URL.to_string(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
                 label: vec![Node::Text(format!("{url2} {url3}"))],
             })
         );
@@ -419,7 +415,7 @@ mod tests {
         assert_eq!(
             node,
             Node::Link(Link::WithLabel {
-                href: LINK_URL.to_string(),
+                href: ::url::Url::parse(LINK_URL).unwrap(),
                 label: vec![Node::Text(url2.to_string())],
             })
         );

@@ -72,6 +72,7 @@ mod parser;
 mod tokens;
 mod url;
 
+pub use ::url::Url;
 pub use error::ParseError;
 pub use extension::CosyParserExtension;
 

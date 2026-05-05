@@ -7,26 +7,31 @@ pub enum UrlKind {
 }
 
 pub fn infer_url_kind(s: &str) -> Option<UrlKind> {
+    Some(infer_url(s)?.1)
+}
+
+/// Parses `s` as a URL and classifies it. Returns the parsed [`Url`] together
+/// with the inferred [`UrlKind`] so callers do not have to re-parse.
+pub fn infer_url(s: &str) -> Option<(Url, UrlKind)> {
     if !s.contains("://") {
         return None;
     }
-    if let Ok(url) = Url::parse(s) {
-        if let Some(ext) = url
-            .path_segments()
-            .and_then(|mut segments| segments.next_back())
-            .and_then(|name| name.split('.').next_back())
-        {
-            let mime = mime_guess::from_ext(ext).first_or_octet_stream();
-            if mime.type_() == mime::IMAGE {
-                return Some(UrlKind::Image);
-            } else {
-                return Some(UrlKind::Other);
-            }
+    let url = Url::parse(s).ok()?;
+    let kind = if let Some(ext) = url
+        .path_segments()
+        .and_then(|mut segments| segments.next_back())
+        .and_then(|name| name.split('.').next_back())
+    {
+        let mime = mime_guess::from_ext(ext).first_or_octet_stream();
+        if mime.type_() == mime::IMAGE {
+            UrlKind::Image
         } else {
-            return Some(UrlKind::Other);
+            UrlKind::Other
         }
-    }
-    None
+    } else {
+        UrlKind::Other
+    };
+    Some((url, kind))
 }
 
 #[test]

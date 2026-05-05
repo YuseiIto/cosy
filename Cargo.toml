@@ -18,7 +18,7 @@ exclude = [
 ]
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:serde", "url/serde"]
 
 [package.metadata.docs.rs]
 all-features = true
