@@ -2,6 +2,7 @@
 name = "cosy"
 version = "0.1.0"
 edition = "2024"
+authors = ["Yusei Ito <me@yuseiito.com>"]
 description = "A parser for Cosense/Scrapbox markup syntax that produces a typed AST"
 license = "MIT"
 repository = "https://github.com/YuseiIto/cosy"
