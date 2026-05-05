@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/cosy.svg)](https://crates.io/crates/cosy)
 [![Documentation](https://docs.rs/cosy/badge.svg)](https://docs.rs/cosy)
 [![CI](https://github.com/YuseiIto/cosy/actions/workflows/ci.yml/badge.svg)](https://github.com/YuseiIto/cosy/actions)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/YuseiIto/cosy/blob/main/LICENSE)
 
 A parser for [Cosense](https://cosen.se/) (formerly Scrapbox) markup syntax that produces a typed AST.
 
@@ -106,4 +106,4 @@ use cosy::Url;
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/YuseiIto/cosy/blob/main/LICENSE).
