@@ -38,3 +38,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (also enables `url/serde`).
 - `ParseError` type (using `thiserror`) so callers do not need a direct
   `winnow` dependency.
+- Built on [`winnow`](https://docs.rs/winnow) 1.0.
