@@ -1,13 +1,9 @@
 use url::Url;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum UrlKind {
     Image,
     Other,
-}
-
-pub fn infer_url_kind(s: &str) -> Option<UrlKind> {
-    Some(infer_url(s)?.1)
 }
 
 /// Parses `s` as a URL and classifies it. Returns the parsed [`Url`] together
@@ -34,24 +30,37 @@ pub fn infer_url(s: &str) -> Option<(Url, UrlKind)> {
     Some((url, kind))
 }
 
-#[test]
-fn test_infer_url_kind() {
-    assert_eq!(
-        infer_url_kind("https://example.com/image.png"),
-        Some(UrlKind::Image)
-    );
-    assert_eq!(
-        infer_url_kind("https://example.com/document.pdf"),
-        Some(UrlKind::Other)
-    );
-    assert_eq!(infer_url_kind("not a url"), None);
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-fn test_infer_url_kind_image_with_query() {
-    // Query string should not affect image detection
-    assert_eq!(
-        infer_url_kind("https://example.com/image.png?w=100"),
-        Some(UrlKind::Image)
-    );
+    fn kind_of(s: &str) -> Option<UrlKind> {
+        infer_url(s).map(|(_, k)| k)
+    }
+
+    #[test]
+    fn test_infer_url_kind() {
+        assert_eq!(kind_of("https://example.com/image.png"), Some(UrlKind::Image));
+        assert_eq!(
+            kind_of("https://example.com/document.pdf"),
+            Some(UrlKind::Other)
+        );
+        assert_eq!(kind_of("not a url"), None);
+    }
+
+    #[test]
+    fn test_infer_url_kind_image_with_query() {
+        // Query string should not affect image detection
+        assert_eq!(
+            kind_of("https://example.com/image.png?w=100"),
+            Some(UrlKind::Image)
+        );
+    }
+
+    #[test]
+    fn test_infer_url_returns_parsed_url() {
+        let (url, kind) = infer_url("https://example.com/photo.png").unwrap();
+        assert_eq!(url.as_str(), "https://example.com/photo.png");
+        assert_eq!(kind, UrlKind::Image);
+    }
 }

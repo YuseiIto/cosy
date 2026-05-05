@@ -3,7 +3,7 @@ use crate::CosyParserExtension;
 use crate::ast::Link;
 use crate::ast::Node;
 use crate::tokens::{ICON_SUFFIX, LBRACKET, MATH_BRACKET_PREFIX, RBRACKET};
-use crate::url::{UrlKind, infer_url_kind};
+use crate::url::{UrlKind, infer_url};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -77,21 +77,26 @@ where
         {
             let first_token = first_token.trim();
             let last_token = last_token.trim();
+            let rest = rest.trim();
+            let start = start.trim();
 
-            // Determine which end holds the URL (if any).
-            let (left, right) = if infer_url_kind(first_token).is_some() {
-                // [url ...label...]
-                (first_token, rest.trim())
-            } else if infer_url_kind(last_token).is_some() {
-                // [...label... url]
-                (start.trim(), last_token)
-            } else {
-                // [Page Name With Spaces]
-                return Ok(Node::Link(Link::Page(content.to_string())));
-            };
+            // Probe each end for a URL once. The chosen side's parsed Url is
+            // threaded through into the WithLabel arms below, so we never
+            // re-parse a URL we have already classified.
+            let (left, left_url, right, right_url) =
+                if let Some(first_url) = infer_url(first_token) {
+                    // [url ...label...]
+                    (first_token, Some(first_url), rest, infer_url(rest))
+                } else if let Some(last_url) = infer_url(last_token) {
+                    // [...label... url]
+                    (start, infer_url(start), last_token, Some(last_url))
+                } else {
+                    // [Page Name With Spaces]
+                    return Ok(Node::Link(Link::Page(content.to_string())));
+                };
 
-            let left_kind = infer_url_kind(left);
-            let right_kind = infer_url_kind(right);
+            let left_kind = left_url.as_ref().map(|(_, k)| *k);
+            let right_kind = right_url.as_ref().map(|(_, k)| *k);
 
             return match (left_kind, right_kind) {
                 (Some(UrlKind::Image), Some(UrlKind::Image)) => {
@@ -119,14 +124,14 @@ where
                     // [url label...] → multi-word label linking to url
                     let mut label_input = right;
                     let nodes = parse_nodes(&mut label_input, extension)?;
-                    let href = ::url::Url::parse(left).map_err(|_| ContextError::new())?;
+                    let (href, _) = left_url.expect("left_kind is Some");
                     Ok(Node::Link(Link::WithLabel { href, label: nodes }))
                 }
                 (_, Some(UrlKind::Other) | Some(UrlKind::Image)) => {
                     // [...label url] → multi-word label linking to url
                     let mut label_input = left;
                     let nodes = parse_nodes(&mut label_input, extension)?;
-                    let href = ::url::Url::parse(right).map_err(|_| ContextError::new())?;
+                    let (href, _) = right_url.expect("right_kind is Some");
                     Ok(Node::Link(Link::WithLabel { href, label: nodes }))
                 }
                 _ => {
@@ -141,9 +146,9 @@ where
             return Ok(node);
         }
 
-        match infer_url_kind(content) {
-            Some(UrlKind::Image) => Ok(Node::Image(content.to_string())),
-            Some(UrlKind::Other) => Ok(Node::Link(Link::Url(content.to_string()))),
+        match infer_url(content) {
+            Some((_, UrlKind::Image)) => Ok(Node::Image(content.to_string())),
+            Some((_, UrlKind::Other)) => Ok(Node::Link(Link::Url(content.to_string()))),
             None => Ok(Node::Link(Link::Page(content.to_string()))),
         }
     }

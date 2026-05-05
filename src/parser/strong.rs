@@ -2,7 +2,7 @@ use super::bracket_content::take_bracket_content;
 use crate::CosyParserExtension;
 use crate::ast::Node;
 use crate::tokens::{ICON_SUFFIX, LBRACKET, RBRACKET};
-use crate::url::{UrlKind, infer_url_kind};
+use crate::url::{UrlKind, infer_url};
 use winnow::combinator::delimited;
 use winnow::error::ContextError;
 use winnow::prelude::*;
@@ -43,9 +43,9 @@ where
                 name: name.to_string(),
                 count: 1,
             }],
-            None => match infer_url_kind(content) {
-                Some(UrlKind::Image) => vec![Node::Image(content.to_string())],
-                Some(UrlKind::Other) => {
+            None => match infer_url(content) {
+                Some((_, UrlKind::Image)) => vec![Node::Image(content.to_string())],
+                Some((_, UrlKind::Other)) => {
                     vec![Node::Link(crate::ast::Link::Url(content.to_string()))]
                 }
                 None => parse_nodes_no_deco(&mut content, extension)?,
