@@ -5,11 +5,12 @@ use crate::ast::Node;
 use crate::ast::{Latitude, Longitude};
 use crate::tokens::{ICON_SUFFIX, LBRACKET, MATH_BRACKET_PREFIX, RBRACKET};
 use crate::url::{UrlKind, infer_url};
+use winnow::Result as PResult;
 use winnow::ascii::{dec_uint, float};
-use winnow::combinator::{alt, delimited, opt, preceded};
+use winnow::combinator::{alt, delimited, eof, opt, preceded, terminated};
 use winnow::error::ContextError;
 use winnow::prelude::*;
-use winnow::Result as PResult;
+use winnow::token::take_till;
 
 use super::node::parse_nodes;
 
@@ -23,161 +24,163 @@ where
         let content: &str =
             delimited(LBRACKET, take_bracket_content, RBRACKET).parse_next(input)?;
 
-        // 1. Math: [$ expr]
-        if let Some(expr) = content.strip_prefix(MATH_BRACKET_PREFIX) {
-            return Ok(Node::Math(expr.trim().to_string()));
-        }
-
-        // 2. Icon: [name.icon] or [name.icon*3]
-        if content.ends_with(ICON_SUFFIX) {
-            // Simple icon — reject empty names like [.icon]
-            let name = content.trim_end_matches(ICON_SUFFIX);
-            if !name.is_empty() {
-                return Ok(Node::Icon {
-                    name: name.to_string(),
-                    count: 1,
-                });
-            }
-        }
-        if let Some((name_part, count_str)) = content.rsplit_once('*')
-            && name_part.ends_with(ICON_SUFFIX)
-            && let Ok(count) = count_str.parse::<usize>()
-            && count > 0
-        {
-            let name = name_part.trim_end_matches(ICON_SUFFIX);
-            if !name.is_empty() {
-                return Ok(Node::Icon {
-                    name: name.to_string(),
-                    count,
-                });
-            }
-        }
-
-        // 3. Cross-project link: [/project], [/project/], or [/project/page]
-        if let Some(rest) = content.strip_prefix('/') {
-            if let Some((project, page)) = rest.split_once('/') {
-                if !project.is_empty() {
-                    if page.is_empty() {
-                        return Ok(Node::Link(Link::Project(project.to_string())));
-                    } else {
-                        return Ok(Node::Link(Link::ProjectPage {
-                            project: project.to_string(),
-                            page: page.to_string(),
-                        }));
-                    }
-                }
-            } else if !rest.is_empty() {
-                return Ok(Node::Link(Link::Project(rest.to_string())));
-            }
-        }
-
-        // 4. Links (recurse on label)
-        //
-        // URLs never contain spaces, so the URL is always the first or last token.
-        // Split at the first space to isolate a leading URL; at the last space for a trailing URL.
-        if let Some((first_token, rest)) = content.split_once(' ')
-            && let Some((start, last_token)) = content.rsplit_once(' ')
-        {
-            let first_token = first_token.trim();
-            let last_token = last_token.trim();
-            let rest = rest.trim();
-            let start = start.trim();
-
-            // Probe each end for a URL once. The chosen side's parsed Url is
-            // threaded through into the WithLabel arms below, so we never
-            // re-parse a URL we have already classified.
-            let (left, left_url, right, right_url) = if let Some(first_url) = infer_url(first_token)
-            {
-                // [url ...label...]
-                (first_token, Some(first_url), rest, infer_url(rest))
-            } else if let Some(last_url) = infer_url(last_token) {
-                // [...label... url]
-                (start, infer_url(start), last_token, Some(last_url))
-            } else {
-                // [Page Name With Spaces]
-                return Ok(Node::Link(Link::Page(content.to_string())));
-            };
-
-            let left_kind = left_url.as_ref().map(|(_, k)| *k);
-            let right_kind = right_url.as_ref().map(|(_, k)| *k);
-
-            return match (left_kind, right_kind) {
-                (Some(UrlKind::Image), Some(UrlKind::Image)) => {
-                    // [img1 img2] → display img2, link to img1
-                    let (href, _) = left_url.expect("left_kind is Some");
-                    let (src, _) = right_url.expect("right_kind is Some");
-                    Ok(Node::LinkedImage { src, href })
-                }
-                (Some(UrlKind::Image), Some(UrlKind::Other)) => {
-                    // [img link] → display img, link to link
-                    let (src, _) = left_url.expect("left_kind is Some");
-                    let (href, _) = right_url.expect("right_kind is Some");
-                    Ok(Node::LinkedImage { src, href })
-                }
-                (Some(UrlKind::Other), Some(UrlKind::Image)) => {
-                    // [link img] → display img, link to link
-                    let (href, _) = left_url.expect("left_kind is Some");
-                    let (src, _) = right_url.expect("right_kind is Some");
-                    Ok(Node::LinkedImage { src, href })
-                }
-                (Some(UrlKind::Other), _) => {
-                    // [url label...] → multi-word label linking to url
-                    let mut label_input = right;
-                    let nodes = parse_nodes(&mut label_input, extension)?;
-                    let (href, _) = left_url.expect("left_kind is Some");
-                    Ok(Node::Link(Link::WithLabel { href, label: nodes }))
-                }
-                (_, Some(UrlKind::Other) | Some(UrlKind::Image)) => {
-                    // [...label url] → multi-word label linking to url
-                    let mut label_input = left;
-                    let nodes = parse_nodes(&mut label_input, extension)?;
-                    let (href, _) = right_url.expect("right_kind is Some");
-                    Ok(Node::Link(Link::WithLabel { href, label: nodes }))
-                }
-                _ => {
-                    // [Page Name] - space inside page name
-                    Ok(Node::Link(Link::Page(content.to_string())))
-                }
-            };
-        }
-
-        // 4. Simple content (Coordinate, Image, URL, Page)
-        if let Some(node) = try_parse_coordinate(content) {
-            return Ok(node);
-        }
-
-        match infer_url(content) {
-            Some((url, UrlKind::Image)) => Ok(Node::Image(url)),
-            Some((url, UrlKind::Other)) => Ok(Node::Link(Link::Url(url))),
-            None => Ok(Node::Link(Link::Page(content.to_string()))),
-        }
+        let mut inner_input = content;
+        alt((
+            parse_math,
+            parse_icon,
+            parse_project_link,
+            parse_coordinate,
+            parse_links_and_pages(extension),
+        ))
+        .parse_next(&mut inner_input)
     }
 }
 
-/// Tries to parse `content` as coordinate syntax `[NS]{lat},{EW}{lon}[,Z{zoom}]`.
-/// Returns `Some(Node::Coordinate {...})` on success, `None` otherwise.
-fn try_parse_coordinate<T>(content: &str) -> Option<Node<T>> {
-    fn parser<T>(input: &mut &str) -> PResult<Node<T>> {
+fn parse_coordinate<T>(input: &mut &str) -> PResult<Node<T>> {
+    terminated(
         (
             alt((
                 preceded('N', float).map(Latitude::North),
                 preceded('S', float).map(Latitude::South),
             )),
-            preceded(',', alt((
-                preceded('E', float).map(Longitude::East),
-                preceded('W', float).map(Longitude::West),
-            ))),
+            preceded(
+                ',',
+                alt((
+                    preceded('E', float).map(Longitude::East),
+                    preceded('W', float).map(Longitude::West),
+                )),
+            ),
             opt(preceded(",Z", dec_uint)),
-        )
-            .map(|(latitude, longitude, zoom)| Node::Coordinate {
-                latitude,
-                longitude,
-                zoom,
-            })
-            .parse_next(input)
-    }
+        ),
+        eof,
+    )
+    .map(|(latitude, longitude, zoom)| Node::Coordinate {
+        latitude,
+        longitude,
+        zoom,
+    })
+    .parse_next(input)
+}
 
-    parser.parse(content).ok()
+fn parse_math<T>(input: &mut &str) -> PResult<Node<T>> {
+    preceded(MATH_BRACKET_PREFIX, winnow::token::rest)
+        .map(|s: &str| Node::Math(s.trim().to_string()))
+        .parse_next(input)
+}
+
+fn parse_icon<T>(input: &mut &str) -> PResult<Node<T>> {
+    // [name.icon] or [name.icon*N] (N > 0)
+    let content = *input;
+
+    let (icon_part, count) = content
+        .rsplit_once('*')
+        .filter(|(before, _)| before.ends_with(ICON_SUFFIX))
+        .and_then(|(before, after)| {
+            let n = after.parse::<usize>().ok()?;
+            (n > 0).then_some((before, n))
+        })
+        .unwrap_or((content, 1));
+
+    let name = icon_part
+        .strip_suffix(ICON_SUFFIX)
+        .filter(|name| !name.is_empty())
+        .ok_or_else(ContextError::new)?;
+
+    *input = "";
+    Ok(Node::Icon {
+        name: name.to_string(),
+        count,
+    })
+}
+
+fn parse_project_link<T>(input: &mut &str) -> PResult<Node<T>> {
+    // [/project], [/project/], or [/project/page]
+    preceded(
+        '/',
+        (take_till(1.., '/'), opt(preceded('/', winnow::token::rest))),
+    )
+    .map(|(project, page): (&str, Option<&str>)| {
+        let project = project.to_string();
+        match page {
+            Some(p) if !p.is_empty() => Node::Link(Link::ProjectPage {
+                project,
+                page: p.to_string(),
+            }),
+            _ => Node::Link(Link::Project(project)),
+        }
+    })
+    .parse_next(input)
+}
+
+enum BracketToken<'a> {
+    Image(::url::Url),
+    Link(::url::Url),
+    Plain(&'a str),
+}
+
+impl<'a> BracketToken<'a> {
+    fn of(s: &'a str) -> Self {
+        match infer_url(s) {
+            Some((url, UrlKind::Image)) => Self::Image(url),
+            Some((url, UrlKind::Other)) => Self::Link(url),
+            None => Self::Plain(s),
+        }
+    }
+}
+
+fn parse_links_and_pages<'s, 'i, E>(
+    extension: &'s E,
+) -> impl FnMut(&mut &'i str) -> PResult<Node<E::Output>> + 's
+where
+    E: CosyParserExtension,
+{
+    move |input: &mut &'i str| {
+        let content = *input;
+        *input = ""; // Always consumes the whole bracket content.
+
+        // Single-token content.
+        let Some((first_token, rest)) = content.split_once(' ') else {
+            return Ok(match BracketToken::of(content) {
+                BracketToken::Image(url) => Node::Image(url),
+                BracketToken::Link(url) => Node::Link(Link::Url(url)),
+                BracketToken::Plain(s) => Node::Link(Link::Page(s.to_string())),
+            });
+        };
+        // `split_once` succeeded, so `rsplit_once` must too.
+        let (start, last_token) = content.rsplit_once(' ').expect("content contains ' '");
+
+        let with_label = |href: ::url::Url, text: &str| -> PResult<Node<E::Output>> {
+            let mut label_input = text;
+            let label = parse_nodes(&mut label_input, extension)?;
+            Ok(Node::Link(Link::WithLabel { href, label }))
+        };
+
+        // Only the first and last tokens can be URLs; classify each end and
+        // dispatch on the pair.
+        match (BracketToken::of(first_token), BracketToken::of(last_token)) {
+            // LinkedImage — both ends are URLs and at least one is an image.
+            // (Only reachable for 2-token inputs, since 3+ tokens means the
+            // "label side" string contains spaces and can't be a URL.)
+            (BracketToken::Image(href), BracketToken::Image(src)) => {
+                Ok(Node::LinkedImage { src, href })
+            }
+            (BracketToken::Image(src), BracketToken::Link(href)) => {
+                Ok(Node::LinkedImage { src, href })
+            }
+            (BracketToken::Link(href), BracketToken::Image(src)) => {
+                Ok(Node::LinkedImage { src, href })
+            }
+
+            // URL anchor on the left → label is everything that follows.
+            (BracketToken::Link(href), _) => with_label(href, rest),
+
+            // URL anchor on the right → label is everything that precedes.
+            (_, BracketToken::Link(href) | BracketToken::Image(href)) => with_label(href, start),
+
+            // (Image, Plain) and (Plain, Plain) — no usable URL pair.
+            _ => Ok(Node::Link(Link::Page(content.to_string()))),
+        }
+    }
 }
 
 #[cfg(test)]
