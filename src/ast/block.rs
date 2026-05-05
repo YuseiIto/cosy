@@ -13,7 +13,7 @@ pub type Document<T> = Vec<Block<T>>;
 ///
 /// Blocks are the top-level structures like lines, code blocks, tables, etc.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Block<T> {
     /// The indentation level of the block.
     pub indent: usize,
@@ -24,7 +24,7 @@ pub struct Block<T> {
 /// The content of a block-level element.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BlockContent<T> {
     /// A normal line of text, composed of a sequence of inline nodes.
     Line(Vec<Node<T>>),
@@ -110,7 +110,7 @@ pub enum ShellPrompt {
 /// | `code:main.rs(rust)` | `Both { filename: "main.rs", language: "rust" }` |
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CodeBlockMeta {
     /// No filename or language specified (`code:`).
     None,

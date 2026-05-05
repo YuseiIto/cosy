@@ -156,12 +156,12 @@ where
 }
 
 /// Parses a direction prefix + numeric value from a coordinate component.
-/// e.g. `"N35.65"` with `['N', 'S']` → `Some(('N', "35.65"))`.
-fn parse_coord(s: &str, dirs: [char; 2]) -> Option<(char, &str)> {
+/// e.g. `"N35.65"` with `['N', 'S']` → `Some(('N', 35.65))`.
+fn parse_coord(s: &str, dirs: [char; 2]) -> Option<(char, f64)> {
     let dir = s.chars().next().filter(|c| dirs.contains(c))?;
     let val = &s[1..]; // dir is always ASCII
-    val.parse::<f64>().ok()?;
-    Some((dir, val))
+    let parsed = val.parse::<f64>().ok()?;
+    Some((dir, parsed))
 }
 
 /// Tries to parse `content` as coordinate syntax `[NS]{lat},{EW}{lon}[,Z{zoom}]`.
@@ -187,9 +187,9 @@ fn try_parse_coordinate<T>(content: &str) -> Option<Node<T>> {
     };
 
     Some(Node::Coordinate {
-        lat: lat.to_string(),
+        lat,
         lat_dir,
-        lon: lon.to_string(),
+        lon,
         lon_dir,
         zoom,
     })
@@ -468,9 +468,9 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: "35.6578589".to_string(),
+                lat: 35.6578589,
                 lat_dir: 'N',
-                lon: "139.7474797".to_string(),
+                lon: 139.7474797,
                 lon_dir: 'E',
                 zoom: None,
             }
@@ -483,9 +483,9 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: "35.6578589".to_string(),
+                lat: 35.6578589,
                 lat_dir: 'N',
-                lon: "139.7474797".to_string(),
+                lon: 139.7474797,
                 lon_dir: 'E',
                 zoom: Some(14),
             }
@@ -498,9 +498,9 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: "33.8688".to_string(),
+                lat: 33.8688,
                 lat_dir: 'S',
-                lon: "151.2093".to_string(),
+                lon: 151.2093,
                 lon_dir: 'W',
                 zoom: None,
             }
@@ -513,9 +513,9 @@ mod tests {
         assert_eq!(
             node,
             Node::Coordinate {
-                lat: "35.65".to_string(),
+                lat: 35.65,
                 lat_dir: 'N',
-                lon: "139.74".to_string(),
+                lon: 139.74,
                 lon_dir: 'E',
                 zoom: Some(0),
             }

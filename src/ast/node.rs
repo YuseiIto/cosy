@@ -7,7 +7,7 @@
 /// Represents an inline-level element (node) within a block.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Node<T> {
     /// Plain text.
     Text(String),
@@ -64,16 +64,13 @@ pub enum Node<T> {
     /// A geographic coordinate rendered as a map embed.
     ///
     /// Parsed from `[N35.65,E139.74]` or `[N35.65,E139.74,Z14]`.
-    ///
-    /// Latitude and longitude are stored as `String` (not `f64`) to preserve
-    /// the original representation and satisfy the `Eq` bound on all AST types.
     Coordinate {
-        /// Latitude value as a string (e.g., `"35.6578589"`).
-        lat: String,
+        /// Latitude value (e.g., `35.6578589`).
+        lat: f64,
         /// Latitude direction: `'N'` (north) or `'S'` (south).
         lat_dir: char,
-        /// Longitude value as a string (e.g., `"139.7474797"`).
-        lon: String,
+        /// Longitude value (e.g., `139.7474797`).
+        lon: f64,
         /// Longitude direction: `'E'` (east) or `'W'` (west).
         lon_dir: char,
         /// Optional zoom level (e.g., `Some(14)`).
@@ -89,7 +86,7 @@ pub enum Node<T> {
 /// Represents a link target and optional label.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Link<T> {
     /// A link to another page (internal link).
     Page(String),
