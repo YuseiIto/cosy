@@ -27,8 +27,8 @@ cargo run --example cli -- title <project>/<page> [api-key]
 
 ### Two-Level AST
 
-- **Block level** (`ast/block.rs`): `Document<T>` = `Vec<Block<T>>`. Block types: Line, CodeBlock, Table, Quote, Custom. Each block tracks indentation level.
-- **Inline level** (`ast/node.rs`): `Node<T>` variants: Text, Link, Image, Icon, InlineCode, Math, Decoration, Custom. `Link<T>` further splits into Page, Url, WithLabel.
+- **Block level** (`ast/block.rs`): `Document<T>` is a newtype `Document<T>(pub Vec<Block<T>>)` with `Deref<Target = [Block<T>]>` and `IntoIterator` impls. `BlockContent<T>` variants: Line, CodeBlock, Table, Quote, Helpfeel, CommandLine, Custom. Each block tracks indentation level.
+- **Inline level** (`ast/node.rs`): `Node<T>` variants: Text, Link, Image, LinkedImage, Icon, InlineCode, Math, Hashtag, Decoration, Strong, Coordinate, Custom. `Link<T>` further splits into Page, Url, WithLabel, Project, ProjectPage.
 
 All AST types are generic over `T` — the extension output type.
 
@@ -53,7 +53,6 @@ Bracket content and decorations recursively call `parse_nodes()`, enabling neste
 pub trait CosyParserExtension {
     type Output;
     fn parse_bracket(&self, content: &str) -> Option<Self::Output>;
-    fn parse_block(&self, content: &str) -> Option<Self::Output>;
 }
 ```
 
