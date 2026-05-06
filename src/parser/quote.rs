@@ -2,8 +2,10 @@ use super::node::parse_nodes;
 use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent};
 use winnow::Result as PResult;
+use winnow::ascii::{line_ending, till_line_ending};
+use winnow::combinator::opt;
 use winnow::prelude::*;
-use winnow::token::{any, take_till};
+use winnow::token::any;
 
 pub fn parse_quote<'s, E>(
     input: &mut &'s str,
@@ -17,12 +19,8 @@ where
     let _ = any.parse_next(input)?;
 
     // Determine content (rest of line)
-    let line_content = take_till(0.., |c| c == '\n').parse_next(input)?;
-
-    // Consume newline if present
-    if !input.is_empty() && (*input).starts_with('\n') {
-        let _ = any.parse_next(input)?;
-    }
+    let line_content = till_line_ending.parse_next(input)?;
+    let _ = opt(line_ending).parse_next(input)?;
 
     // Parse nodes in the content (trim start space usually after >?)
     let mut span = line_content;

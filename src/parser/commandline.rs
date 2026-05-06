@@ -1,8 +1,10 @@
 use crate::ast::{Block, BlockContent, ShellPrompt};
 use winnow::Result as PResult;
+use winnow::ascii::{line_ending, till_line_ending};
+use winnow::combinator::opt;
 use winnow::error::ContextError;
 use winnow::prelude::*;
-use winnow::token::{any, take_till};
+use winnow::token::any;
 
 pub fn parse_commandline<T>(input: &mut &str, indent: usize) -> PResult<Block<T>> {
     // Determine prompt from the first character.
@@ -17,12 +19,8 @@ pub fn parse_commandline<T>(input: &mut &str, indent: usize) -> PResult<Block<T>
     // Consume mandatory space
     let _ = any.parse_next(input)?;
 
-    let content = take_till(0.., |c| c == '\n').parse_next(input)?;
-
-    // Consume trailing newline if present
-    if !input.is_empty() && (*input).starts_with('\n') {
-        let _ = any.parse_next(input)?;
-    }
+    let content = till_line_ending.parse_next(input)?;
+    let _ = opt(line_ending).parse_next(input)?;
 
     Ok(Block {
         indent,

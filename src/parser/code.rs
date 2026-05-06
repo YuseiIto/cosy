@@ -2,8 +2,9 @@ use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent, CodeBlockMeta};
 use crate::tokens::CODE_PREFIX;
 use winnow::Result as PResult;
+use winnow::ascii::{line_ending, till_line_ending};
+use winnow::combinator::opt;
 use winnow::prelude::*;
-use winnow::token::{any, take_till};
 
 pub fn parse_code_block<E>(input: &mut &str, indent: usize) -> PResult<Block<E::Output>>
 where
@@ -11,7 +12,7 @@ where
 {
     // "code:filename"
     let _ = { CODE_PREFIX }.parse_next(input)?;
-    let filename_line = take_till(0.., |c| c == '\n').parse_next(input)?;
+    let filename_line = till_line_ending.parse_next(input)?;
     let filename_line = if filename_line.trim().is_empty() {
         None
     } else {
@@ -44,9 +45,7 @@ where
         None => CodeBlockMeta::None,
     };
 
-    if !input.is_empty() && (*input).starts_with('\n') {
-        let _ = any.parse_next(input)?;
-    }
+    let _ = opt(line_ending).parse_next(input)?;
 
     // Parse subsequent lines that are indented MORE than `indent`
     // We assume the block continues as long as lines are indented > indent.
@@ -66,14 +65,12 @@ where
         let _ = winnow::token::take(current_indent).parse_next(input)?;
 
         // Consume line
-        let line = take_till(0.., |c| c == '\n').parse_next(input)?;
+        let line = till_line_ending.parse_next(input)?;
 
         content.push_str(line);
         content.push('\n');
 
-        if !input.is_empty() && (*input).starts_with('\n') {
-            let _ = any.parse_next(input)?;
-        } else {
+        if opt(line_ending).parse_next(input)?.is_none() {
             // End of input
             break;
         }

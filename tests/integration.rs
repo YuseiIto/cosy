@@ -131,6 +131,56 @@ fn lossless_unclosed_backtick() {
     assert_eq!(line_text_content(&doc[0]), "a `unclosed");
 }
 
+#[test]
+fn crlf_single_line() {
+    let lf = cosy::parse("Hello world\n", &()).unwrap();
+    let crlf = cosy::parse("Hello world\r\n", &()).unwrap();
+    assert_eq!(lf, crlf);
+}
+
+#[test]
+fn crlf_multiple_blocks() {
+    let lf = cosy::parse("first\nsecond\nthird\n", &()).unwrap();
+    let crlf = cosy::parse("first\r\nsecond\r\nthird\r\n", &()).unwrap();
+    assert_eq!(lf, crlf);
+}
+
+#[test]
+fn crlf_inline_text_has_no_stray_cr() {
+    // No `\r` character should leak into a Text node.
+    let doc = cosy::parse("Hello [link]\r\n", &()).unwrap();
+    if let BlockContent::Line(nodes) = &doc[0].content {
+        for node in nodes {
+            if let Node::Text(s) = node {
+                assert!(!s.contains('\r'), "Text node contains stray CR: {s:?}");
+            }
+        }
+    } else {
+        panic!("expected Line");
+    }
+}
+
+#[test]
+fn crlf_in_code_block() {
+    let lf = cosy::parse("code:main.rs\n fn main() {}\n", &()).unwrap();
+    let crlf = cosy::parse("code:main.rs\r\n fn main() {}\r\n", &()).unwrap();
+    assert_eq!(lf, crlf);
+}
+
+#[test]
+fn crlf_in_table() {
+    let lf = cosy::parse("table:t\n A\tB\n 1\t2\n", &()).unwrap();
+    let crlf = cosy::parse("table:t\r\n A\tB\r\n 1\t2\r\n", &()).unwrap();
+    assert_eq!(lf, crlf);
+}
+
+#[test]
+fn mixed_lf_and_crlf_endings() {
+    let lf = cosy::parse("a\nb\nc\n", &()).unwrap();
+    let mixed = cosy::parse("a\r\nb\nc\r\n", &()).unwrap();
+    assert_eq!(lf, mixed);
+}
+
 #[cfg(feature = "serde")]
 #[test]
 fn serde_roundtrip() {

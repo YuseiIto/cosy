@@ -3,8 +3,9 @@ use crate::CosyParserExtension;
 use crate::ast::{Block, BlockContent};
 use crate::tokens::TABLE_PREFIX;
 use winnow::Result as PResult;
+use winnow::ascii::{line_ending, till_line_ending};
+use winnow::combinator::opt;
 use winnow::prelude::*;
-use winnow::token::{any, take_till};
 
 pub fn parse_table<'s, E>(
     input: &mut &'s str,
@@ -16,12 +17,10 @@ where
 {
     // "table:name"
     let _ = { TABLE_PREFIX }.parse_next(input)?;
-    let name_line = take_till(0.., |c| c == '\n').parse_next(input)?;
+    let name_line = till_line_ending.parse_next(input)?;
     let name = name_line.trim().to_string();
 
-    if !input.is_empty() && (*input).starts_with('\n') {
-        let _ = any.parse_next(input)?;
-    }
+    let _ = opt(line_ending).parse_next(input)?;
 
     let mut rows = Vec::new();
 
@@ -38,7 +37,7 @@ where
         let _ = winnow::token::take(current_indent).parse_next(input)?;
 
         // Consume line
-        let line = take_till(0.., |c| c == '\n').parse_next(input)?;
+        let line = till_line_ending.parse_next(input)?;
 
         // Parse row cells (tab separated)
         let cells_str: Vec<&str> = line.split('\t').collect();
@@ -50,13 +49,10 @@ where
         }
         rows.push(row);
 
-        // Check if the next line is empty or end of file
-        if input.is_empty() || !(*input).starts_with('\n') {
+        // Consume newline; break if EOF.
+        if opt(line_ending).parse_next(input)?.is_none() {
             break;
         }
-
-        // Consume newline
-        let _ = any.parse_next(input)?;
     }
 
     Ok(Block {
