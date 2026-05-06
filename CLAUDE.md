@@ -64,3 +64,7 @@ pub trait CosyParserExtension {
 - `ast/` — Type definitions only, no logic
 - `tokens.rs` — Shared string constants (delimiters, prefix markers, decoration chars)
 - `url.rs` — URL detection and MIME type inference for distinguishing link vs image
+
+## Coding Principles
+- Prefer built-in `winnow` features over custom implementations whenever possible.
+- Keep all documentation up-to-date when modifying code. This includes comments, docstrings, Markdown files (including `CLAUDE.md` and `CHANGELOG.md`), and examples.
