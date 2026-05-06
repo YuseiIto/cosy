@@ -1,31 +1,26 @@
 use crate::ast::Node;
 use crate::tokens::ICON_SUFFIX;
 use winnow::Result as PResult;
-use winnow::error::ContextError;
+use winnow::ascii::dec_uint;
+use winnow::combinator::{eof, opt, preceded, terminated};
+use winnow::prelude::*;
+use winnow::token::take_until;
 
 pub(super) fn parse_icon<T>(input: &mut &str) -> PResult<Node<T>> {
-    // [name.icon] or [name.icon*N] (N > 0)
-    let content = *input;
-
-    let (icon_part, count) = content
-        .rsplit_once('*')
-        .filter(|(before, _)| before.ends_with(ICON_SUFFIX))
-        .and_then(|(before, after)| {
-            let n = after.parse::<usize>().ok()?;
-            (n > 0).then_some((before, n))
-        })
-        .unwrap_or((content, 1));
-
-    let name = icon_part
-        .strip_suffix(ICON_SUFFIX)
-        .filter(|name| !name.is_empty())
-        .ok_or_else(ContextError::new)?;
-
-    *input = "";
-    Ok(Node::Icon {
+    // <name>.icon or <name>.icon*N (N > 0); name must be non-empty.
+    terminated(
+        (
+            take_until(1.., ICON_SUFFIX),
+            ICON_SUFFIX,
+            opt(preceded('*', dec_uint::<_, usize, _>).verify(|n| *n > 0)),
+        ),
+        eof,
+    )
+    .map(|(name, _, count): (&str, _, Option<usize>)| Node::Icon {
         name: name.to_string(),
-        count,
+        count: count.unwrap_or(1),
     })
+    .parse_next(input)
 }
 
 #[cfg(test)]
