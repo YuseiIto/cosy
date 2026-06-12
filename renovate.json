@@ -5,6 +5,7 @@
   ],
   "extends": ["config:recommended", ":semanticCommits", "schedule:weekly"],
   "labels": ["dependencies"],
+  "assignees": ["yuseiito"],
   "dependencyDashboard": true,
   "prHourlyLimit": 0,
   "packageRules": [
