@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "cosy is published to crates.io, so this is configured as a library: it keeps the semver ranges in Cargo.toml (Renovate's default cargo 'replace' strategy only rewrites them on out-of-range/major bumps) rather than pinning, which would needlessly constrain downstream consumers."
+  ],
+  "extends": ["config:recommended", ":semanticCommits", "schedule:weekly"],
+  "labels": ["dependencies"],
+  "dependencyDashboard": true,
+  "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "description": "Batch and automerge non-major dev-dependency updates (CI gates the merge)",
+      "matchDepTypes": ["dev-dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev dependencies (non-major)",
+      "automerge": true
+    },
+    {
+      "description": "Automerge GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "automerge": true
+    }
+  ]
+}
